@@ -7,3 +7,7 @@ project.properties
 .settings/
 .classpath
 .project
+
+# Local agent workspace
+.codex
+.codex/
