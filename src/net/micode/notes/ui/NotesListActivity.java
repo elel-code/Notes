@@ -95,6 +95,17 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
         NOTE_LIST, SUB_FOLDER, CALL_RECORD_FOLDER
     };
 
+    private static final class NoteListQueryCookie {
+        public long folderId;
+
+        public String searchText;
+
+        public NoteListQueryCookie(long folderId, String searchText) {
+            this.folderId = folderId;
+            this.searchText = searchText;
+        }
+    }
+
     private ListEditState mState;
 
     private BackgroundQueryHandler mBackgroundQueryHandler;
@@ -112,6 +123,8 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
     private int mDispatchY;
 
     private TextView mTitleBar;
+
+    private EditText mSearchEditText;
 
     private long mCurrentFolderId;
 
@@ -226,9 +239,28 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
         mDispatch = false;
         mDispatchY = 0;
         mOriginY = 0;
-        mTitleBar = (TextView) findViewById(R.id.tv_title_bar);
-        mState = ListEditState.NOTE_LIST;
         mModeCallBack = new ModeCallback();
+        mTitleBar = (TextView) findViewById(R.id.tv_title_bar);
+        mSearchEditText = (EditText) findViewById(R.id.et_search);
+        mSearchEditText.addTextChangedListener(new TextWatcher() {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // Do nothing
+            }
+
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (mNotesListAdapter.isInChoiceMode()) {
+                    mModeCallBack.finishActionMode();
+                }
+                startAsyncNotesListQuery();
+            }
+
+            public void afterTextChanged(Editable s) {
+                // Do nothing
+            }
+        });
+        mSearchEditText.clearFocus();
+        mNotesListView.requestFocus();
+        mState = ListEditState.NOTE_LIST;
     }
 
     private class ModeCallback implements ListView.MultiChoiceModeListener, OnMenuItemClickListener {
@@ -300,10 +332,13 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
             mNotesListAdapter.setChoiceMode(false);
             mNotesListView.setLongClickable(true);
             mAddNewNote.setVisibility(View.VISIBLE);
+            mActionMode = null;
         }
 
         public void finishActionMode() {
-            mActionMode.finish();
+            if (mActionMode != null) {
+                mActionMode.finish();
+            }
         }
 
         public void onItemCheckedStateChanged(ActionMode mode, int position, long id,
@@ -409,12 +444,23 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
     };
 
     private void startAsyncNotesListQuery() {
+        String searchText = getSearchText();
+        NoteListQueryCookie queryCookie = new NoteListQueryCookie(mCurrentFolderId, searchText);
         String selection = (mCurrentFolderId == Notes.ID_ROOT_FOLDER) ? ROOT_FOLDER_SELECTION
                 : NORMAL_SELECTION;
-        mBackgroundQueryHandler.startQuery(FOLDER_NOTE_LIST_QUERY_TOKEN, null,
-                Notes.CONTENT_NOTE_URI, NoteItemData.PROJECTION, selection, new String[] {
-                    String.valueOf(mCurrentFolderId)
-                }, NoteColumns.TYPE + " DESC," + NoteColumns.MODIFIED_DATE + " DESC");
+        String[] selectionArgs = new String[] {
+                String.valueOf(mCurrentFolderId)
+        };
+        if (!TextUtils.isEmpty(searchText)) {
+            selection = "(" + selection + ") AND " + NoteColumns.SNIPPET + " LIKE ?";
+            selectionArgs = new String[] {
+                    String.valueOf(mCurrentFolderId), "%" + searchText + "%"
+            };
+        }
+        mBackgroundQueryHandler.cancelOperation(FOLDER_NOTE_LIST_QUERY_TOKEN);
+        mBackgroundQueryHandler.startQuery(FOLDER_NOTE_LIST_QUERY_TOKEN, queryCookie,
+                Notes.CONTENT_NOTE_URI, NoteItemData.PROJECTION, selection, selectionArgs,
+                NoteColumns.TYPE + " DESC," + NoteColumns.MODIFIED_DATE + " DESC");
     }
 
     private final class BackgroundQueryHandler extends AsyncQueryHandler {
@@ -426,6 +472,12 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
         protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
             switch (token) {
                 case FOLDER_NOTE_LIST_QUERY_TOKEN:
+                    if (isStaleQuery((NoteListQueryCookie) cookie)) {
+                        if (cursor != null) {
+                            cursor.close();
+                        }
+                        return;
+                    }
                     mNotesListAdapter.changeCursor(cursor);
                     break;
                 case FOLDER_LIST_QUERY_TOKEN:
@@ -438,6 +490,34 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
                 default:
                     return;
             }
+        }
+    }
+
+    private String getSearchText() {
+        if (mSearchEditText == null || mSearchEditText.getText() == null) {
+            return "";
+        }
+        return mSearchEditText.getText().toString().trim();
+    }
+
+    private boolean isStaleQuery(NoteListQueryCookie cookie) {
+        if (cookie == null) {
+            return true;
+        }
+        return cookie.folderId != mCurrentFolderId
+                || !TextUtils.equals(cookie.searchText, getSearchText());
+    }
+
+    private void focusSearchInput() {
+        if (mSearchEditText == null) {
+            return;
+        }
+        mSearchEditText.requestFocus();
+        mSearchEditText.setSelection(mSearchEditText.length());
+        InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(
+                Context.INPUT_METHOD_SERVICE);
+        if (inputMethodManager != null) {
+            inputMethodManager.showSoftInput(mSearchEditText, InputMethodManager.SHOW_IMPLICIT);
         }
     }
 
@@ -810,7 +890,7 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
                 break;
             }
             case R.id.menu_search:
-                onSearchRequested();
+                focusSearchInput();
                 break;
             default:
                 break;
@@ -820,7 +900,7 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
 
     @Override
     public boolean onSearchRequested() {
-        startSearch(null, false, null /* appData */, false);
+        focusSearchInput();
         return true;
     }
 

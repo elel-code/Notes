@@ -37,6 +37,20 @@
             android:textColor="#FFEAD1AE"
             android:textSize="@dimen/text_font_size_medium" />
 
+        <EditText
+            android:id="@+id/et_search"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dip"
+            android:layout_marginTop="8dip"
+            android:layout_marginRight="8dip"
+            android:layout_marginBottom="4dip"
+            android:hint="@string/search_hint"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:singleLine="true"
+            android:textSize="@dimen/text_font_size_small" />
+
         <ListView
             android:id="@+id/notes_list"
             android:layout_width="fill_parent"
