@@ -86,6 +86,7 @@
     <string name="error_export_permission_denied">Storage permission denied, export unavailable</string>
     <string name="error_long_image_save_failed">Save image failed</string>
     <string name="error_note_not_exist">The note is not exist</string>
+    <string name="error_note_empty_for_export">Cannot export an empty note</string>
     <string name="error_note_empty_for_clock">Sorry, can not set clock on empty note</string>
     <string name="error_note_empty_for_send_to_desktop">Sorry, can not send and empty note to home</string>
     <string name="success_sdcard_export">Export successful</string>

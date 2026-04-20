@@ -628,6 +628,11 @@ public class NoteEditActivity extends Activity implements OnClickListener,
     }
 
     private void ensureStoragePermissionAndRun(int storageAction) {
+        if (TextUtils.isEmpty(getCurrentNoteTextForExport().trim())) {
+            showToast(R.string.error_note_empty_for_export);
+            return;
+        }
+
         if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
             showToast(R.string.error_sdcard_unmounted);
             return;
