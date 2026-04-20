@@ -11,3 +11,6 @@ project.properties
 # Local agent workspace
 .codex
 .codex/
+
+# Local agent instructions
+AGENT.md
