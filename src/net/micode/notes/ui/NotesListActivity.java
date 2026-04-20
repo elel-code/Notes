@@ -100,9 +100,16 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
 
         public String searchText;
 
-        public NoteListQueryCookie(long folderId, String searchText) {
+        public String selection;
+
+        public String[] selectionArgs;
+
+        public NoteListQueryCookie(long folderId, String searchText, String selection,
+                String[] selectionArgs) {
             this.folderId = folderId;
             this.searchText = searchText;
+            this.selection = selection;
+            this.selectionArgs = selectionArgs;
         }
     }
 
@@ -131,6 +138,8 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
     private ContentResolver mContentResolver;
 
     private ModeCallback mModeCallBack;
+
+    private NoteListQueryCookie mLastNoteListQueryCookie;
 
     private static final String TAG = "NotesListActivity";
 
@@ -445,18 +454,32 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
 
     private void startAsyncNotesListQuery() {
         String searchText = getSearchText();
-        NoteListQueryCookie queryCookie = new NoteListQueryCookie(mCurrentFolderId, searchText);
+        if (!TextUtils.isEmpty(searchText)) {
+            startAsyncNotesListQuery(NoteColumns.SNIPPET + " LIKE ?",
+                    new String[] {
+                        "%" + searchText + "%"
+                    });
+        } else {
+            startAsyncNotesListQuery(null, null);
+        }
+    }
+
+    private void startAsyncNotesListQuery(String extraSelection, String[] extraSelectionArgs) {
+        String searchText = getSearchText();
         String selection = (mCurrentFolderId == Notes.ID_ROOT_FOLDER) ? ROOT_FOLDER_SELECTION
                 : NORMAL_SELECTION;
         String[] selectionArgs = new String[] {
                 String.valueOf(mCurrentFolderId)
         };
-        if (!TextUtils.isEmpty(searchText)) {
-            selection = "(" + selection + ") AND " + NoteColumns.SNIPPET + " LIKE ?";
-            selectionArgs = new String[] {
-                    String.valueOf(mCurrentFolderId), "%" + searchText + "%"
-            };
+
+        if (!TextUtils.isEmpty(extraSelection)) {
+            selection = "(" + selection + ") AND (" + extraSelection + ")";
+            selectionArgs = appendSelectionArgs(selectionArgs, extraSelectionArgs);
         }
+
+        NoteListQueryCookie queryCookie = new NoteListQueryCookie(mCurrentFolderId, searchText,
+                selection, selectionArgs);
+        mLastNoteListQueryCookie = queryCookie;
         mBackgroundQueryHandler.cancelOperation(FOLDER_NOTE_LIST_QUERY_TOKEN);
         mBackgroundQueryHandler.startQuery(FOLDER_NOTE_LIST_QUERY_TOKEN, queryCookie,
                 Notes.CONTENT_NOTE_URI, NoteItemData.PROJECTION, selection, selectionArgs,
@@ -500,12 +523,52 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
         return mSearchEditText.getText().toString().trim();
     }
 
+    private String[] appendSelectionArgs(String[] baseArgs, String[] extraArgs) {
+        if (extraArgs == null || extraArgs.length == 0) {
+            return baseArgs;
+        }
+
+        int baseLength = (baseArgs != null) ? baseArgs.length : 0;
+        String[] result = new String[baseLength + extraArgs.length];
+        for (int i = 0; i < baseLength; i++) {
+            result[i] = baseArgs[i];
+        }
+        for (int i = 0; i < extraArgs.length; i++) {
+            result[baseLength + i] = extraArgs[i];
+        }
+        return result;
+    }
+
     private boolean isStaleQuery(NoteListQueryCookie cookie) {
         if (cookie == null) {
             return true;
         }
-        return cookie.folderId != mCurrentFolderId
-                || !TextUtils.equals(cookie.searchText, getSearchText());
+        if (mLastNoteListQueryCookie == null) {
+            return true;
+        }
+        return !TextUtils.equals(cookie.searchText, mLastNoteListQueryCookie.searchText)
+                || cookie.folderId != mLastNoteListQueryCookie.folderId
+                || !TextUtils.equals(cookie.selection, mLastNoteListQueryCookie.selection)
+                || !isSameSelectionArgs(cookie.selectionArgs,
+                        mLastNoteListQueryCookie.selectionArgs);
+    }
+
+    private boolean isSameSelectionArgs(String[] first, String[] second) {
+        if (first == second) {
+            return true;
+        }
+        if (first == null || second == null) {
+            return false;
+        }
+        if (first.length != second.length) {
+            return false;
+        }
+        for (int i = 0; i < first.length; i++) {
+            if (!TextUtils.equals(first[i], second[i])) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void focusSearchInput() {
