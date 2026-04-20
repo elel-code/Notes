@@ -501,6 +501,7 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
                         }
                         return;
                     }
+                    mNotesListAdapter.setSearchText(((NoteListQueryCookie) cookie).searchText);
                     mNotesListAdapter.changeCursor(cursor);
                     break;
                 case FOLDER_LIST_QUERY_TOKEN:
