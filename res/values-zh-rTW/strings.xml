@@ -62,6 +62,7 @@
     <string name="folder_exist">文件夾 %1$s 已存在，請重新命名</string>
     <string name="menu_share">分享</string>
     <string name="menu_export_as_txt">導出為 TXT</string>
+    <string name="menu_generate_long_image">生成長圖</string>
     <string name="menu_send_to_desktop">發送到桌面</string>
     <string name="menu_alert">提醒我</string>
     <string name="menu_remove_remind">刪除提醒</string>
@@ -74,11 +75,14 @@
     <string name="alert_message_delete_folder">確認刪除檔夾及所包含的便簽嗎？</string>
     <string name="error_sdcard_unmounted">SD卡被佔用，不能操作</string>
     <string name="error_sdcard_export">導出TXT時發生錯誤，請檢查SD卡</string>
+    <string name="error_storage_permission_denied">儲存權限被拒絕</string>
     <string name="error_export_permission_denied">儲存權限被拒絕，無法導出</string>
+    <string name="error_long_image_save_failed">保存圖片失敗</string>
     <string name="error_note_not_exist">要查看的便籤不存在</string>
     <string name="error_note_empty_for_clock">不能爲空便籤設置鬧鐘提醒</string>
     <string name="error_note_empty_for_send_to_desktop">不能將空便籤發送到桌面</string>
     <string name="success_sdcard_export">導出成功</string>
+    <string name="success_long_image_saved">已保存到相冊</string>
     <string name="failed_sdcard_export">導出失敗</string>
     <string name="format_exported_file_location">已將文本文件(%1$s)導出至SD(%2$s)目錄</string>
     <!-- Sync -->

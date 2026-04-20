@@ -27,15 +27,23 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.content.SharedPreferences;
 import android.graphics.Paint;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.text.Layout;
 import android.text.Spannable;
 import android.text.SpannableString;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.text.format.DateUtils;
@@ -151,8 +159,14 @@ public class NoteEditActivity extends Activity implements OnClickListener,
     private static final String PREFERENCE_FONT_SIZE = "pref_font_size";
 
     private static final int SHORTCUT_ICON_TITLE_MAX_LEN = 10;
-    private static final int REQUEST_CODE_EXPORT_AS_TXT = 1001;
+    private static final int REQUEST_CODE_WRITE_EXTERNAL_STORAGE = 1001;
     private static final int RUNTIME_PERMISSION_API_LEVEL = 23;
+    private static final int STORAGE_ACTION_NONE = 0;
+    private static final int STORAGE_ACTION_EXPORT_AS_TXT = 1;
+    private static final int STORAGE_ACTION_SAVE_LONG_IMAGE = 2;
+    private static final int LONG_IMAGE_HORIZONTAL_PADDING_DP = 24;
+    private static final int LONG_IMAGE_VERTICAL_PADDING_DP = 32;
+    private static final int LONG_IMAGE_MIN_HEIGHT_DP = 240;
 
     public static final String TAG_CHECKED = String.valueOf('\u221A');
     public static final String TAG_UNCHECKED = String.valueOf('\u25A1');
@@ -161,6 +175,7 @@ public class NoteEditActivity extends Activity implements OnClickListener,
 
     private String mUserQuery;
     private Pattern mPattern;
+    private int mPendingStorageAction = STORAGE_ACTION_NONE;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -554,6 +569,9 @@ public class NoteEditActivity extends Activity implements OnClickListener,
             case R.id.menu_export_as_txt:
                 exportCurrentNoteAsTxt();
                 break;
+            case R.id.menu_generate_long_image:
+                saveCurrentNoteAsLongImage();
+                break;
             case R.id.menu_send_to_desktop:
                 sendToDesktop();
                 break;
@@ -591,16 +609,44 @@ public class NoteEditActivity extends Activity implements OnClickListener,
     }
 
     private void exportCurrentNoteAsTxt() {
+        ensureStoragePermissionAndRun(STORAGE_ACTION_EXPORT_AS_TXT);
+    }
+
+    private void saveCurrentNoteAsLongImage() {
+        ensureStoragePermissionAndRun(STORAGE_ACTION_SAVE_LONG_IMAGE);
+    }
+
+    private void ensureStoragePermissionAndRun(int storageAction) {
         if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
             showToast(R.string.error_sdcard_unmounted);
             return;
         }
 
+        mPendingStorageAction = storageAction;
         if (needsWriteStoragePermission()) {
             requestWriteStoragePermission();
             return;
         }
 
+        handlePendingStorageAction();
+    }
+
+    private void handlePendingStorageAction() {
+        int storageAction = mPendingStorageAction;
+        mPendingStorageAction = STORAGE_ACTION_NONE;
+        switch (storageAction) {
+            case STORAGE_ACTION_EXPORT_AS_TXT:
+                doExportCurrentNoteAsTxt();
+                break;
+            case STORAGE_ACTION_SAVE_LONG_IMAGE:
+                doSaveCurrentNoteAsLongImage();
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void doExportCurrentNoteAsTxt() {
         final String noteText = getCurrentNoteTextForExport();
         new AsyncTask<Void, Void, Boolean>() {
             @Override
@@ -629,22 +675,24 @@ public class NoteEditActivity extends Activity implements OnClickListener,
                 new String[] {
                     android.Manifest.permission.WRITE_EXTERNAL_STORAGE
                 },
-                REQUEST_CODE_EXPORT_AS_TXT
+                REQUEST_CODE_WRITE_EXTERNAL_STORAGE
             });
         } catch (Exception e) {
             Log.e(TAG, "Request storage permission failed", e);
-            showToast(R.string.error_sdcard_export);
+            mPendingStorageAction = STORAGE_ACTION_NONE;
+            showToast(R.string.error_storage_permission_denied);
         }
     }
 
     public void onRequestPermissionsResult(int requestCode, String[] permissions,
             int[] grantResults) {
-        if (requestCode == REQUEST_CODE_EXPORT_AS_TXT) {
+        if (requestCode == REQUEST_CODE_WRITE_EXTERNAL_STORAGE) {
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                exportCurrentNoteAsTxt();
+                handlePendingStorageAction();
             } else {
-                showToast(R.string.error_export_permission_denied);
+                mPendingStorageAction = STORAGE_ACTION_NONE;
+                showToast(R.string.error_storage_permission_denied);
             }
         }
     }
@@ -898,6 +946,196 @@ public class NoteEditActivity extends Activity implements OnClickListener,
             }
         }
         return sb.toString();
+    }
+
+    private String getCurrentNoteTextForLongImage() {
+        if (mWorkingNote.getCheckListMode() != TextNote.MODE_CHECK_LIST) {
+            return mNoteEditor.getText().toString();
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < mEditTextList.getChildCount(); i++) {
+            View view = mEditTextList.getChildAt(i);
+            NoteEditText edit = (NoteEditText) view.findViewById(R.id.et_edit_text);
+            CharSequence itemText = edit.getText();
+            if (!TextUtils.isEmpty(itemText)) {
+                if (sb.length() > 0) {
+                    sb.append('\n');
+                }
+                sb.append(((CheckBox) view.findViewById(R.id.cb_edit_item)).isChecked()
+                        ? TAG_CHECKED : TAG_UNCHECKED)
+                        .append(" ")
+                        .append(itemText);
+            }
+        }
+        return sb.toString();
+    }
+
+    private void doSaveCurrentNoteAsLongImage() {
+        final String noteText = getCurrentNoteTextForLongImage();
+        final float textSize = getCurrentEditorTextSize();
+        final int backgroundResId = mWorkingNote.getBgColorResId();
+        final int imageWidth = getLongImageWidth();
+
+        new AsyncTask<Void, Void, File>() {
+            @Override
+            protected File doInBackground(Void... params) {
+                Bitmap bitmap = createLongImageBitmap(noteText, textSize, backgroundResId,
+                        imageWidth);
+                return saveLongImageBitmap(bitmap);
+            }
+
+            @Override
+            protected void onPostExecute(File imageFile) {
+                if (imageFile != null) {
+                    notifyGallery(imageFile);
+                    showToast(R.string.success_long_image_saved);
+                } else {
+                    showToast(R.string.error_long_image_save_failed);
+                }
+            }
+        }.execute();
+    }
+
+    private float getCurrentEditorTextSize() {
+        if (mWorkingNote.getCheckListMode() == TextNote.MODE_CHECK_LIST
+                && mEditTextList.getChildCount() > 0) {
+            NoteEditText edit = (NoteEditText) mEditTextList.getChildAt(0).findViewById(
+                    R.id.et_edit_text);
+            if (edit != null && edit.getTextSize() > 0) {
+                return edit.getTextSize();
+            }
+        }
+        return mNoteEditor.getTextSize() > 0 ? mNoteEditor.getTextSize() : spToPx(18);
+    }
+
+    private int getLongImageWidth() {
+        int width = getResources().getDisplayMetrics().widthPixels;
+        return width > 0 ? width : dpToPx(360);
+    }
+
+    private Bitmap createLongImageBitmap(String noteText, float textSize, int backgroundResId,
+            int imageWidth) {
+        try {
+            String content = TextUtils.isEmpty(noteText) ? " " : noteText;
+            int horizontalPadding = dpToPx(LONG_IMAGE_HORIZONTAL_PADDING_DP);
+            int verticalPadding = dpToPx(LONG_IMAGE_VERTICAL_PADDING_DP);
+            int contentWidth = Math.max(imageWidth - horizontalPadding * 2, dpToPx(160));
+
+            TextPaint textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+            textPaint.setColor(Color.rgb(51, 51, 51));
+            textPaint.setTextSize(textSize > 0 ? textSize : spToPx(18));
+
+            StaticLayout layout = new StaticLayout(content, textPaint, contentWidth,
+                    Layout.Alignment.ALIGN_NORMAL, 1.4f, dpToPx(4), false);
+            int imageHeight = Math.max(layout.getHeight() + verticalPadding * 2,
+                    dpToPx(LONG_IMAGE_MIN_HEIGHT_DP));
+
+            Bitmap bitmap = Bitmap.createBitmap(imageWidth, imageHeight, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            drawLongImageBackground(canvas, backgroundResId, imageWidth, imageHeight);
+            canvas.save();
+            canvas.translate(horizontalPadding, verticalPadding);
+            layout.draw(canvas);
+            canvas.restore();
+            return bitmap;
+        } catch (OutOfMemoryError e) {
+            Log.e(TAG, "Create long image bitmap failed", e);
+            return null;
+        }
+    }
+
+    private void drawLongImageBackground(Canvas canvas, int backgroundResId, int width,
+            int height) {
+        try {
+            Drawable background = getResources().getDrawable(backgroundResId);
+            if (background != null) {
+                background.setBounds(0, 0, width, height);
+                background.draw(canvas);
+                return;
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Draw long image background failed", e);
+        }
+        canvas.drawColor(Color.WHITE);
+    }
+
+    private File saveLongImageBitmap(Bitmap bitmap) {
+        if (bitmap == null) {
+            return null;
+        }
+
+        File imageFile = createLongImageFile();
+        if (imageFile == null) {
+            bitmap.recycle();
+            return null;
+        }
+
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(imageFile);
+            if (!bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos)) {
+                imageFile.delete();
+                return null;
+            }
+            fos.flush();
+            return imageFile;
+        } catch (IOException e) {
+            Log.e(TAG, "Save long image bitmap failed", e);
+            imageFile.delete();
+            return null;
+        } finally {
+            bitmap.recycle();
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "Close image output stream failed", e);
+                }
+            }
+        }
+    }
+
+    private File createLongImageFile() {
+        File picturesDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);
+        if (picturesDir == null) {
+            Log.e(TAG, "Pictures directory is null");
+            return null;
+        }
+
+        File notesDir = new File(picturesDir, "Notes");
+        if (!notesDir.exists() && !notesDir.mkdirs()) {
+            Log.e(TAG, "Create image export directory failed: " + notesDir.getAbsolutePath());
+            return null;
+        }
+
+        File imageFile = new File(notesDir, "note_long_image_"
+                + DateFormat.format("yyyyMMdd_HHmmss", System.currentTimeMillis()) + ".png");
+        try {
+            if (!imageFile.exists() && !imageFile.createNewFile()) {
+                Log.e(TAG, "Create image file failed: " + imageFile.getAbsolutePath());
+                return null;
+            }
+        } catch (IOException e) {
+            Log.e(TAG, "Create image file failed", e);
+            return null;
+        }
+        return imageFile;
+    }
+
+    private void notifyGallery(File imageFile) {
+        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        intent.setData(Uri.fromFile(imageFile));
+        sendBroadcast(intent);
+    }
+
+    private int dpToPx(int dp) {
+        return (int) (dp * getResources().getDisplayMetrics().density + 0.5f);
+    }
+
+    private float spToPx(int sp) {
+        return sp * getResources().getDisplayMetrics().scaledDensity;
     }
 
     private boolean writeNoteTextToDownload(String noteText) {
