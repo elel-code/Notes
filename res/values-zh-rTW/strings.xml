@@ -61,6 +61,7 @@
     <string name="menu_folder_change_name">修改文件夾名稱</string>
     <string name="folder_exist">文件夾 %1$s 已存在，請重新命名</string>
     <string name="menu_share">分享</string>
+    <string name="share_note_chooser_title">分享便簽</string>
     <string name="menu_export_as_txt">導出為 TXT</string>
     <string name="menu_generate_long_image">生成長圖</string>
     <string name="menu_send_to_desktop">發送到桌面</string>
@@ -75,6 +76,7 @@
     <string name="alert_message_delete_folder">確認刪除檔夾及所包含的便簽嗎？</string>
     <string name="error_sdcard_unmounted">SD卡被佔用，不能操作</string>
     <string name="error_sdcard_export">導出TXT時發生錯誤，請檢查SD卡</string>
+    <string name="error_no_share_app">沒有可用於分享便簽的應用</string>
     <string name="error_storage_permission_denied">儲存權限被拒絕</string>
     <string name="error_export_permission_denied">儲存權限被拒絕，無法導出</string>
     <string name="error_long_image_save_failed">保存圖片失敗</string>

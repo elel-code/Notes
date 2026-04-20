@@ -22,6 +22,7 @@ import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.app.SearchManager;
 import android.appwidget.AppWidgetManager;
+import android.content.ActivityNotFoundException;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -563,8 +564,7 @@ public class NoteEditActivity extends Activity implements OnClickListener,
                         TextNote.MODE_CHECK_LIST : 0);
                 break;
             case R.id.menu_share:
-                getWorkingText();
-                sendTo(this, mWorkingNote.getContent());
+                shareCurrentNote();
                 break;
             case R.id.menu_export_as_txt:
                 exportCurrentNoteAsTxt();
@@ -601,11 +601,22 @@ public class NoteEditActivity extends Activity implements OnClickListener,
      * Share note to apps that support {@link Intent#ACTION_SEND} action
      * and {@text/plain} type
      */
+    private void shareCurrentNote() {
+        sendTo(this, getCurrentNoteTextForShare());
+    }
+
     private void sendTo(Context context, String info) {
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.putExtra(Intent.EXTRA_TEXT, info);
+        intent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.app_name));
         intent.setType("text/plain");
-        context.startActivity(intent);
+        try {
+            context.startActivity(Intent.createChooser(intent,
+                    getString(R.string.share_note_chooser_title)));
+        } catch (ActivityNotFoundException e) {
+            Log.e(TAG, "Share note failed", e);
+            showToast(R.string.error_no_share_app);
+        }
     }
 
     private void exportCurrentNoteAsTxt() {
@@ -946,6 +957,13 @@ public class NoteEditActivity extends Activity implements OnClickListener,
             }
         }
         return sb.toString();
+    }
+
+    private String getCurrentNoteTextForShare() {
+        if (mWorkingNote.getCheckListMode() != TextNote.MODE_CHECK_LIST) {
+            return mNoteEditor.getText().toString();
+        }
+        return getCurrentNoteTextForLongImage();
     }
 
     private String getCurrentNoteTextForLongImage() {
