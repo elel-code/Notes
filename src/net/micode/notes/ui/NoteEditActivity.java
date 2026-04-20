@@ -26,13 +26,18 @@ import android.content.ContentUris;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.SharedPreferences;
 import android.graphics.Paint;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
+import android.text.format.DateFormat;
 import android.text.format.DateUtils;
 import android.text.style.BackgroundColorSpan;
 import android.util.Log;
@@ -65,6 +70,12 @@ import net.micode.notes.ui.NoteEditText.OnTextViewChangeListener;
 import net.micode.notes.widget.NoteWidgetProvider_2x;
 import net.micode.notes.widget.NoteWidgetProvider_4x;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -140,6 +151,8 @@ public class NoteEditActivity extends Activity implements OnClickListener,
     private static final String PREFERENCE_FONT_SIZE = "pref_font_size";
 
     private static final int SHORTCUT_ICON_TITLE_MAX_LEN = 10;
+    private static final int REQUEST_CODE_EXPORT_AS_TXT = 1001;
+    private static final int RUNTIME_PERMISSION_API_LEVEL = 23;
 
     public static final String TAG_CHECKED = String.valueOf('\u221A');
     public static final String TAG_UNCHECKED = String.valueOf('\u25A1');
@@ -538,6 +551,9 @@ public class NoteEditActivity extends Activity implements OnClickListener,
                 getWorkingText();
                 sendTo(this, mWorkingNote.getContent());
                 break;
+            case R.id.menu_export_as_txt:
+                exportCurrentNoteAsTxt();
+                break;
             case R.id.menu_send_to_desktop:
                 sendToDesktop();
                 break;
@@ -572,6 +588,65 @@ public class NoteEditActivity extends Activity implements OnClickListener,
         intent.putExtra(Intent.EXTRA_TEXT, info);
         intent.setType("text/plain");
         context.startActivity(intent);
+    }
+
+    private void exportCurrentNoteAsTxt() {
+        if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+            showToast(R.string.error_sdcard_unmounted);
+            return;
+        }
+
+        if (needsWriteStoragePermission()) {
+            requestWriteStoragePermission();
+            return;
+        }
+
+        final String noteText = getCurrentNoteTextForExport();
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... params) {
+                return writeNoteTextToDownload(noteText);
+            }
+
+            @Override
+            protected void onPostExecute(Boolean exported) {
+                showToast(exported ? R.string.success_sdcard_export : R.string.error_sdcard_export);
+            }
+        }.execute();
+    }
+
+    private boolean needsWriteStoragePermission() {
+        return Build.VERSION.SDK_INT >= RUNTIME_PERMISSION_API_LEVEL
+                && checkCallingOrSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestWriteStoragePermission() {
+        try {
+            Method requestPermissions = Activity.class.getMethod("requestPermissions",
+                    String[].class, Integer.TYPE);
+            requestPermissions.invoke(this, new Object[] {
+                new String[] {
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                },
+                REQUEST_CODE_EXPORT_AS_TXT
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "Request storage permission failed", e);
+            showToast(R.string.error_sdcard_export);
+        }
+    }
+
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            int[] grantResults) {
+        if (requestCode == REQUEST_CODE_EXPORT_AS_TXT) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                exportCurrentNoteAsTxt();
+            } else {
+                showToast(R.string.error_export_permission_denied);
+            }
+        }
     }
 
     private void createNewNote() {
@@ -803,6 +878,80 @@ public class NoteEditActivity extends Activity implements OnClickListener,
             mWorkingNote.setWorkingText(mNoteEditor.getText().toString());
         }
         return hasChecked;
+    }
+
+    private String getCurrentNoteTextForExport() {
+        if (mWorkingNote.getCheckListMode() != TextNote.MODE_CHECK_LIST) {
+            return mNoteEditor.getText().toString();
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < mEditTextList.getChildCount(); i++) {
+            View view = mEditTextList.getChildAt(i);
+            NoteEditText edit = (NoteEditText) view.findViewById(R.id.et_edit_text);
+            CharSequence itemText = edit.getText();
+            if (!TextUtils.isEmpty(itemText)) {
+                if (sb.length() > 0) {
+                    sb.append('\n');
+                }
+                sb.append(itemText);
+            }
+        }
+        return sb.toString();
+    }
+
+    private boolean writeNoteTextToDownload(String noteText) {
+        File exportFile = createTxtExportFile();
+        if (exportFile == null) {
+            return false;
+        }
+
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(exportFile), "UTF-8"));
+            writer.write(noteText == null ? "" : noteText);
+            writer.flush();
+            return true;
+        } catch (IOException e) {
+            Log.e(TAG, "Export note as txt failed", e);
+            return false;
+        } finally {
+            if (writer != null) {
+                try {
+                    writer.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "Close txt writer failed", e);
+                }
+            }
+        }
+    }
+
+    private File createTxtExportFile() {
+        File downloadDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS);
+        if (downloadDir == null) {
+            Log.e(TAG, "Download directory is null");
+            return null;
+        }
+
+        if (!downloadDir.exists() && !downloadDir.mkdirs()) {
+            Log.e(TAG, "Create download directory failed: " + downloadDir.getAbsolutePath());
+            return null;
+        }
+
+        File exportFile = new File(downloadDir, "note_"
+                + DateFormat.format("yyyyMMdd_HHmmss", System.currentTimeMillis()) + ".txt");
+        try {
+            if (!exportFile.exists() && !exportFile.createNewFile()) {
+                Log.e(TAG, "Create txt export file failed: " + exportFile.getAbsolutePath());
+                return null;
+            }
+        } catch (IOException e) {
+            Log.e(TAG, "Create txt export file failed", e);
+            return null;
+        }
+        return exportFile;
     }
 
     private boolean saveNote() {
