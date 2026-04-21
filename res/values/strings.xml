@@ -64,6 +64,9 @@
     <string name="menu_folder_change_name">Change folder name</string>
     <string name="folder_exist">The folder %1$s exist, please rename</string>
     <string name="menu_share">Share</string>
+    <string name="share_note_chooser_title">Share note</string>
+    <string name="menu_export_as_txt">Export as TXT</string>
+    <string name="menu_generate_long_image">Generate long image</string>
     <string name="menu_send_to_desktop">Send to home</string>
     <string name="menu_alert">Remind me</string>
     <string name="menu_remove_remind">Delete reminder</string>
@@ -78,10 +81,16 @@
     <!-- Error information -->
     <string name="error_sdcard_unmounted">SD card busy, not available now</string>
     <string name="error_sdcard_export">Export failed, please check SD card</string>
+    <string name="error_no_share_app">No app available to share this note</string>
+    <string name="error_storage_permission_denied">Storage permission denied</string>
+    <string name="error_export_permission_denied">Storage permission denied, export unavailable</string>
+    <string name="error_long_image_save_failed">Save image failed</string>
     <string name="error_note_not_exist">The note is not exist</string>
+    <string name="error_note_empty_for_export">Cannot export an empty note</string>
     <string name="error_note_empty_for_clock">Sorry, can not set clock on empty note</string>
     <string name="error_note_empty_for_send_to_desktop">Sorry, can not send and empty note to home</string>
     <string name="success_sdcard_export">Export successful</string>
+    <string name="success_long_image_saved">Image saved to gallery</string>
     <string name="failed_sdcard_export">Export fail</string>
     <string name="format_exported_file_location">Export text file (%1$s) to SD (%2$s) directory</string>
     <!-- Sync -->
