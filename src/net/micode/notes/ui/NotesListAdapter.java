@@ -37,6 +37,7 @@ public class NotesListAdapter extends CursorAdapter {
     private HashMap<Integer, Boolean> mSelectedIndex;
     private int mNotesCount;
     private boolean mChoiceMode;
+    private String mSearchText;
 
     public static class AppWidgetAttribute {
         public int widgetId;
@@ -48,6 +49,7 @@ public class NotesListAdapter extends CursorAdapter {
         mSelectedIndex = new HashMap<Integer, Boolean>();
         mContext = context;
         mNotesCount = 0;
+        mSearchText = "";
     }
 
     @Override
@@ -60,8 +62,12 @@ public class NotesListAdapter extends CursorAdapter {
         if (view instanceof NotesListItem) {
             NoteItemData itemData = new NoteItemData(context, cursor);
             ((NotesListItem) view).bind(context, itemData, mChoiceMode,
-                    isSelectedItem(cursor.getPosition()));
+                    isSelectedItem(cursor.getPosition()), mSearchText);
         }
+    }
+
+    public void setSearchText(String searchText) {
+        mSearchText = searchText;
     }
 
     public void setCheckedItem(final int position, final boolean checked) {

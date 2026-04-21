@@ -17,6 +17,10 @@
 package net.micode.notes.ui;
 
 import android.content.Context;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.TextUtils;
+import android.text.style.BackgroundColorSpan;
 import android.text.format.DateUtils;
 import android.view.View;
 import android.widget.CheckBox;
@@ -28,6 +32,8 @@ import net.micode.notes.R;
 import net.micode.notes.data.Notes;
 import net.micode.notes.tool.DataUtils;
 import net.micode.notes.tool.ResourceParser.NoteItemBgResources;
+
+import java.util.Locale;
 
 
 public class NotesListItem extends LinearLayout {
@@ -48,7 +54,8 @@ public class NotesListItem extends LinearLayout {
         mCheckBox = (CheckBox) findViewById(android.R.id.checkbox);
     }
 
-    public void bind(Context context, NoteItemData data, boolean choiceMode, boolean checked) {
+    public void bind(Context context, NoteItemData data, boolean choiceMode, boolean checked,
+            String searchText) {
         if (choiceMode && data.getType() == Notes.TYPE_NOTE) {
             mCheckBox.setVisibility(View.VISIBLE);
             mCheckBox.setChecked(checked);
@@ -61,14 +68,18 @@ public class NotesListItem extends LinearLayout {
             mCallName.setVisibility(View.GONE);
             mAlert.setVisibility(View.VISIBLE);
             mTitle.setTextAppearance(context, R.style.TextAppearancePrimaryItem);
-            mTitle.setText(context.getString(R.string.call_record_folder_name)
-                    + context.getString(R.string.format_folder_files_count, data.getNotesCount()));
+            mTitle.setText(getHighlightedText(context,
+                    context.getString(R.string.call_record_folder_name)
+                            + context.getString(R.string.format_folder_files_count,
+                                    data.getNotesCount()),
+                    searchText));
             mAlert.setImageResource(R.drawable.call_record);
         } else if (data.getParentId() == Notes.ID_CALL_RECORD_FOLDER) {
             mCallName.setVisibility(View.VISIBLE);
             mCallName.setText(data.getCallName());
             mTitle.setTextAppearance(context,R.style.TextAppearanceSecondaryItem);
-            mTitle.setText(DataUtils.getFormattedSnippet(data.getSnippet()));
+            mTitle.setText(getHighlightedText(context,
+                    DataUtils.getFormattedSnippet(data.getSnippet()), searchText));
             if (data.hasAlert()) {
                 mAlert.setImageResource(R.drawable.clock);
                 mAlert.setVisibility(View.VISIBLE);
@@ -80,12 +91,14 @@ public class NotesListItem extends LinearLayout {
             mTitle.setTextAppearance(context, R.style.TextAppearancePrimaryItem);
 
             if (data.getType() == Notes.TYPE_FOLDER) {
-                mTitle.setText(data.getSnippet()
-                        + context.getString(R.string.format_folder_files_count,
-                                data.getNotesCount()));
+                mTitle.setText(getHighlightedText(context,
+                        data.getSnippet() + context.getString(R.string.format_folder_files_count,
+                                data.getNotesCount()),
+                        searchText));
                 mAlert.setVisibility(View.GONE);
             } else {
-                mTitle.setText(DataUtils.getFormattedSnippet(data.getSnippet()));
+                mTitle.setText(getHighlightedText(context,
+                        DataUtils.getFormattedSnippet(data.getSnippet()), searchText));
                 if (data.hasAlert()) {
                     mAlert.setImageResource(R.drawable.clock);
                     mAlert.setVisibility(View.VISIBLE);
@@ -118,5 +131,23 @@ public class NotesListItem extends LinearLayout {
 
     public NoteItemData getItemData() {
         return mItemData;
+    }
+
+    private CharSequence getHighlightedText(Context context, String fullText, String query) {
+        SpannableString spannable = new SpannableString(fullText == null ? "" : fullText);
+        if (TextUtils.isEmpty(fullText) || TextUtils.isEmpty(query)) {
+            return spannable;
+        }
+
+        String lowerText = fullText.toLowerCase(Locale.getDefault());
+        String lowerQuery = query.toLowerCase(Locale.getDefault());
+        int start = lowerText.indexOf(lowerQuery);
+        while (start >= 0) {
+            spannable.setSpan(new BackgroundColorSpan(context.getResources().getColor(
+                    R.color.user_query_highlight)), start, start + query.length(),
+                    Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+            start = lowerText.indexOf(lowerQuery, start + query.length());
+        }
+        return spannable;
     }
 }
