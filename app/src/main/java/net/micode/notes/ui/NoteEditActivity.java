@@ -72,6 +72,7 @@ import net.micode.notes.data.Notes.TextNote;
 import net.micode.notes.model.WorkingNote;
 import net.micode.notes.model.WorkingNote.NoteSettingChangedListener;
 import net.micode.notes.tool.DataUtils;
+import net.micode.notes.tool.PendingIntentCompat;
 import net.micode.notes.tool.ResourceParser;
 import net.micode.notes.tool.ResourceParser.TextAppearanceResources;
 import net.micode.notes.ui.DateTimePickerDialog.OnDateTimeSetListener;
@@ -536,53 +537,41 @@ public class NoteEditActivity extends Activity implements OnClickListener,
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_new_note:
-                createNewNote();
-                break;
-            case R.id.menu_delete:
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle(getString(R.string.alert_title_delete));
-                builder.setIcon(android.R.drawable.ic_dialog_alert);
-                builder.setMessage(getString(R.string.alert_message_delete_note));
-                builder.setPositiveButton(android.R.string.ok,
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                deleteCurrentNote();
-                                finish();
-                            }
-                        });
-                builder.setNegativeButton(android.R.string.cancel, null);
-                builder.show();
-                break;
-            case R.id.menu_font_size:
-                mFontSizeSelector.setVisibility(View.VISIBLE);
-                findViewById(sFontSelectorSelectionMap.get(mFontSizeId)).setVisibility(View.VISIBLE);
-                break;
-            case R.id.menu_list_mode:
-                mWorkingNote.setCheckListMode(mWorkingNote.getCheckListMode() == 0 ?
-                        TextNote.MODE_CHECK_LIST : 0);
-                break;
-            case R.id.menu_share:
-                shareCurrentNote();
-                break;
-            case R.id.menu_export_as_txt:
-                exportCurrentNoteAsTxt();
-                break;
-            case R.id.menu_generate_long_image:
-                saveCurrentNoteAsLongImage();
-                break;
-            case R.id.menu_send_to_desktop:
-                sendToDesktop();
-                break;
-            case R.id.menu_alert:
-                setReminder();
-                break;
-            case R.id.menu_delete_remind:
-                mWorkingNote.setAlertDate(0, false);
-                break;
-            default:
-                break;
+        int itemId = item.getItemId();
+        if (itemId == R.id.menu_new_note) {
+            createNewNote();
+        } else if (itemId == R.id.menu_delete) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(getString(R.string.alert_title_delete));
+            builder.setIcon(android.R.drawable.ic_dialog_alert);
+            builder.setMessage(getString(R.string.alert_message_delete_note));
+            builder.setPositiveButton(android.R.string.ok,
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            deleteCurrentNote();
+                            finish();
+                        }
+                    });
+            builder.setNegativeButton(android.R.string.cancel, null);
+            builder.show();
+        } else if (itemId == R.id.menu_font_size) {
+            mFontSizeSelector.setVisibility(View.VISIBLE);
+            findViewById(sFontSelectorSelectionMap.get(mFontSizeId)).setVisibility(View.VISIBLE);
+        } else if (itemId == R.id.menu_list_mode) {
+            mWorkingNote.setCheckListMode(mWorkingNote.getCheckListMode() == 0 ?
+                    TextNote.MODE_CHECK_LIST : 0);
+        } else if (itemId == R.id.menu_share) {
+            shareCurrentNote();
+        } else if (itemId == R.id.menu_export_as_txt) {
+            exportCurrentNoteAsTxt();
+        } else if (itemId == R.id.menu_generate_long_image) {
+            saveCurrentNoteAsLongImage();
+        } else if (itemId == R.id.menu_send_to_desktop) {
+            sendToDesktop();
+        } else if (itemId == R.id.menu_alert) {
+            setReminder();
+        } else if (itemId == R.id.menu_delete_remind) {
+            mWorkingNote.setAlertDate(0, false);
         }
         return true;
     }
@@ -762,7 +751,8 @@ public class NoteEditActivity extends Activity implements OnClickListener,
         if (mWorkingNote.getNoteId() > 0) {
             Intent intent = new Intent(this, AlarmReceiver.class);
             intent.setData(ContentUris.withAppendedId(Notes.CONTENT_NOTE_URI, mWorkingNote.getNoteId()));
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent,
+                    PendingIntentCompat.immutableFlag());
             AlarmManager alarmManager = ((AlarmManager) getSystemService(ALARM_SERVICE));
             showAlertHeader();
             if(!set) {

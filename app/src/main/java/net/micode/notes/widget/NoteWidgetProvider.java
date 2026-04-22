@@ -28,6 +28,7 @@ import android.widget.RemoteViews;
 import net.micode.notes.R;
 import net.micode.notes.data.Notes;
 import net.micode.notes.data.Notes.NoteColumns;
+import net.micode.notes.tool.PendingIntentCompat;
 import net.micode.notes.tool.ResourceParser;
 import net.micode.notes.ui.NoteEditActivity;
 import net.micode.notes.ui.NotesListActivity;
@@ -111,11 +112,12 @@ public abstract class NoteWidgetProvider extends AppWidgetProvider {
                     rv.setTextViewText(R.id.widget_text,
                             context.getString(R.string.widget_under_visit_mode));
                     pendingIntent = PendingIntent.getActivity(context, appWidgetIds[i], new Intent(
-                            context, NotesListActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
+                            context, NotesListActivity.class),
+                            PendingIntentCompat.updateCurrentImmutableFlag());
                 } else {
                     rv.setTextViewText(R.id.widget_text, snippet);
                     pendingIntent = PendingIntent.getActivity(context, appWidgetIds[i], intent,
-                            PendingIntent.FLAG_UPDATE_CURRENT);
+                            PendingIntentCompat.updateCurrentImmutableFlag());
                 }
 
                 rv.setOnClickPendingIntent(R.id.widget_text, pendingIntent);

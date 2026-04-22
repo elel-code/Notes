@@ -26,6 +26,7 @@ import android.database.Cursor;
 
 import net.micode.notes.data.Notes;
 import net.micode.notes.data.Notes.NoteColumns;
+import net.micode.notes.tool.PendingIntentCompat;
 
 
 public class AlarmInitReceiver extends BroadcastReceiver {
@@ -53,7 +54,8 @@ public class AlarmInitReceiver extends BroadcastReceiver {
                     long alertDate = c.getLong(COLUMN_ALERTED_DATE);
                     Intent sender = new Intent(context, AlarmReceiver.class);
                     sender.setData(ContentUris.withAppendedId(Notes.CONTENT_NOTE_URI, c.getLong(COLUMN_ID)));
-                    PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, sender, 0);
+                    PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, sender,
+                            PendingIntentCompat.immutableFlag());
                     AlarmManager alermManager = (AlarmManager) context
                             .getSystemService(Context.ALARM_SERVICE);
                     alermManager.set(AlarmManager.RTC_WAKEUP, alertDate, pendingIntent);
