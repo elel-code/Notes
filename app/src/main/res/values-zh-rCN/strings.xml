@@ -37,7 +37,6 @@
     <string name="note_link_other">打开地图</string>
     <!-- note list string -->
     <string name="menu_create_folder">新建文件夹</string>
-    <string name="menu_export_text">导出文本</string>
     <string name="menu_sync">同步</string>
     <string name="menu_sync_cancel">取消同步</string>
     <string name="menu_setting">设置</string>
@@ -62,7 +61,7 @@
     <string name="menu_share">分享</string>
     <string name="share_note_chooser_title">分享便签</string>
     <string name="menu_export_as_txt">导出为 TXT</string>
-    <string name="menu_generate_long_image">生成长图</string>
+    <string name="menu_generate_long_image">保存为图片</string>
     <string name="menu_send_to_desktop">发送到桌面</string>
     <string name="menu_alert">提醒我</string>
     <string name="menu_remove_remind">删除提醒</string>
@@ -79,7 +78,6 @@
     <string name="error_sdcard_export">导出文本时发生错误，请检查SD卡</string>
     <string name="error_no_share_app">没有可用于分享便签的应用</string>
     <string name="error_storage_permission_denied">存储权限被拒绝</string>
-    <string name="error_export_permission_denied">存储权限被拒绝，无法导出</string>
     <string name="error_long_image_save_failed">保存图片失败</string>
     <string name="error_note_not_exist">要查看的便签不存在</string>
     <string name="error_note_empty_for_export">空便签无法导出</string>
@@ -88,7 +86,6 @@
     <string name="success_sdcard_export">导出成功</string>
     <string name="success_long_image_saved">已保存到相册</string>
     <string name="failed_sdcard_export">导出失败</string>
-    <string name="format_exported_file_location">已将文本文件(%1$s)输出至SD卡(%2$s)目录</string>
     <!-- Sync -->
     <string name="ticker_syncing">同步便签...</string>
     <string name="ticker_success">同步成功</string>
@@ -126,6 +123,12 @@
     <string name="search_hint">搜索便签</string>
     <string name="search_setting_description">便签中的文字</string>
     <string name="search">便签</string>
+    <string name="footer_items_empty">这里还没有内容</string>
+    <string name="footer_call_notes_empty">还没有通话便签</string>
+    <string name="footer_items_count">共 %1$d 项内容</string>
+    <string name="footer_call_notes_count">共 %1$d 条通话便签</string>
+    <string name="footer_hint_add_note">轻触底部按钮即可新建便签</string>
+    <string name="footer_hint_search">使用上方搜索可更快找到内容</string>
     <string name="datetime_dialog_ok">设置</string>
     <string name="datetime_dialog_cancel">取消</string>
     <plurals name="search_results_title">

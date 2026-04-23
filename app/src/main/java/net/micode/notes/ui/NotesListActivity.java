@@ -65,7 +65,6 @@ import net.micode.notes.data.Notes;
 import net.micode.notes.data.Notes.NoteColumns;
 import net.micode.notes.gtask.remote.GTaskSyncService;
 import net.micode.notes.model.WorkingNote;
-import net.micode.notes.tool.BackupUtils;
 import net.micode.notes.tool.DataUtils;
 import net.micode.notes.tool.ResourceParser;
 import net.micode.notes.ui.NotesListAdapter.AppWidgetAttribute;
@@ -131,6 +130,10 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
 
     private TextView mTitleBar;
 
+    private TextView mFooterTitle;
+
+    private TextView mFooterSummary;
+
     private EditText mSearchEditText;
 
     private long mCurrentFolderId;
@@ -140,6 +143,8 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
     private ModeCallback mModeCallBack;
 
     private NoteListQueryCookie mLastNoteListQueryCookie;
+
+    private int mFooterItemCount;
 
     private static final String TAG = "NotesListActivity";
 
@@ -236,8 +241,10 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
         mBackgroundQueryHandler = new BackgroundQueryHandler(this.getContentResolver());
         mCurrentFolderId = Notes.ID_ROOT_FOLDER;
         mNotesListView = (ListView) findViewById(R.id.notes_list);
-        mNotesListView.addFooterView(LayoutInflater.from(this).inflate(R.layout.note_list_footer, null),
-                null, false);
+        View footerView = LayoutInflater.from(this).inflate(R.layout.note_list_footer, null);
+        mFooterTitle = (TextView) footerView.findViewById(R.id.tv_footer_title);
+        mFooterSummary = (TextView) footerView.findViewById(R.id.tv_footer_summary);
+        mNotesListView.addFooterView(footerView, null, false);
         mNotesListView.setOnItemClickListener(new OnListItemClickListener());
         mNotesListView.setOnItemLongClickListener(this);
         mNotesListAdapter = new NotesListAdapter(this);
@@ -270,6 +277,7 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
         mSearchEditText.clearFocus();
         mNotesListView.requestFocus();
         mState = ListEditState.NOTE_LIST;
+        updateFooterInfo(0);
     }
 
     private class ModeCallback implements ListView.MultiChoiceModeListener, OnMenuItemClickListener {
@@ -292,6 +300,7 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
             mNotesListAdapter.setChoiceMode(true);
             mNotesListView.setLongClickable(false);
             mAddNewNote.setVisibility(View.GONE);
+            updateFooterInfo(mFooterItemCount);
 
             View customView = LayoutInflater.from(NotesListActivity.this).inflate(
                     R.layout.note_list_dropdown_menu, null);
@@ -342,6 +351,7 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
             mNotesListView.setLongClickable(true);
             mAddNewNote.setVisibility(View.VISIBLE);
             mActionMode = null;
+            updateFooterInfo(mFooterItemCount);
         }
 
         public void finishActionMode() {
@@ -501,6 +511,7 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
                     }
                     mNotesListAdapter.setSearchText(((NoteListQueryCookie) cookie).searchText);
                     mNotesListAdapter.changeCursor(cursor);
+                    updateFooterInfo(cursor != null ? cursor.getCount() : 0);
                     break;
                 case FOLDER_LIST_QUERY_TOKEN:
                     if (cursor != null && cursor.getCount() > 0) {
@@ -520,6 +531,31 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
             return "";
         }
         return mSearchEditText.getText().toString().trim();
+    }
+
+    private void updateFooterInfo(int itemCount) {
+        mFooterItemCount = itemCount;
+        if (mFooterTitle == null || mFooterSummary == null) {
+            return;
+        }
+
+        if (mState == ListEditState.CALL_RECORD_FOLDER) {
+            if (itemCount > 0) {
+                mFooterTitle.setText(getString(R.string.footer_call_notes_count, itemCount));
+            } else {
+                mFooterTitle.setText(R.string.footer_call_notes_empty);
+            }
+        } else {
+            if (itemCount > 0) {
+                mFooterTitle.setText(getString(R.string.footer_items_count, itemCount));
+            } else {
+                mFooterTitle.setText(R.string.footer_items_empty);
+            }
+        }
+
+        mFooterSummary.setText(mAddNewNote != null && mAddNewNote.getVisibility() == View.VISIBLE
+                ? R.string.footer_hint_add_note
+                : R.string.footer_hint_search);
     }
 
     private String[] appendSelectionArgs(String[] baseArgs, String[] extraArgs) {
@@ -899,7 +935,16 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        return buildOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
+        return buildOptionsMenu(menu);
+    }
+
+    private boolean buildOptionsMenu(Menu menu) {
         menu.clear();
         if (mState == ListEditState.NOTE_LIST) {
             getMenuInflater().inflate(R.menu.note_list, menu);
@@ -921,8 +966,6 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
         int itemId = item.getItemId();
         if (itemId == R.id.menu_new_folder) {
             showCreateOrModifyFolderDialog(true);
-        } else if (itemId == R.id.menu_export_text) {
-            exportNoteToText();
         } else if (itemId == R.id.menu_sync) {
             if (isSyncMode()) {
                 if (TextUtils.equals(item.getTitle(), getString(R.string.menu_sync))) {
@@ -947,48 +990,6 @@ public class NotesListActivity extends Activity implements OnClickListener, OnIt
     public boolean onSearchRequested() {
         focusSearchInput();
         return true;
-    }
-
-    private void exportNoteToText() {
-        final BackupUtils backup = BackupUtils.getInstance(NotesListActivity.this);
-        new AsyncTask<Void, Void, Integer>() {
-
-            @Override
-            protected Integer doInBackground(Void... unused) {
-                return backup.exportToText();
-            }
-
-            @Override
-            protected void onPostExecute(Integer result) {
-                if (result == BackupUtils.STATE_SD_CARD_UNMOUONTED) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(NotesListActivity.this);
-                    builder.setTitle(NotesListActivity.this
-                            .getString(R.string.failed_sdcard_export));
-                    builder.setMessage(NotesListActivity.this
-                            .getString(R.string.error_sdcard_unmounted));
-                    builder.setPositiveButton(android.R.string.ok, null);
-                    builder.show();
-                } else if (result == BackupUtils.STATE_SUCCESS) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(NotesListActivity.this);
-                    builder.setTitle(NotesListActivity.this
-                            .getString(R.string.success_sdcard_export));
-                    builder.setMessage(NotesListActivity.this.getString(
-                            R.string.format_exported_file_location, backup
-                                    .getExportedTextFileName(), backup.getExportedTextFileDir()));
-                    builder.setPositiveButton(android.R.string.ok, null);
-                    builder.show();
-                } else if (result == BackupUtils.STATE_SYSTEM_ERROR) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(NotesListActivity.this);
-                    builder.setTitle(NotesListActivity.this
-                            .getString(R.string.failed_sdcard_export));
-                    builder.setMessage(NotesListActivity.this
-                            .getString(R.string.error_sdcard_export));
-                    builder.setPositiveButton(android.R.string.ok, null);
-                    builder.show();
-                }
-            }
-
-        }.execute();
     }
 
     private boolean isSyncMode() {

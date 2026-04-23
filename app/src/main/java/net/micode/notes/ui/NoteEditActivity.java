@@ -511,7 +511,16 @@ public class NoteEditActivity extends Activity implements OnClickListener,
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        return buildOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
+        return buildOptionsMenu(menu);
+    }
+
+    private boolean buildOptionsMenu(Menu menu) {
         if (isFinishing()) {
             return true;
         }
@@ -548,6 +557,7 @@ public class NoteEditActivity extends Activity implements OnClickListener,
             builder.setPositiveButton(android.R.string.ok,
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
+                            setResult(RESULT_OK);
                             deleteCurrentNote();
                             finish();
                         }

@@ -35,13 +35,9 @@
     <string name="note_link_email">Send email</string>
     <string name="note_link_web">Browse web</string>
     <string name="note_link_other">Open map</string>
-    <!-- Text export file information -->
-    <string name="file_path">/MIUI/notes/</string>
-    <string name="file_name_txt_format">notes_%s.txt</string>
     <!-- notes list string -->
     <string name="format_folder_files_count">(%d)</string>
     <string name="menu_create_folder">New Folder</string>
-    <string name="menu_export_text">Export text</string>
     <string name="menu_sync">Sync</string>
     <string name="menu_sync_cancel">Cancel syncing</string>
     <string name="menu_setting">Settings</string>
@@ -66,7 +62,7 @@
     <string name="menu_share">Share</string>
     <string name="share_note_chooser_title">Share note</string>
     <string name="menu_export_as_txt">Export as TXT</string>
-    <string name="menu_generate_long_image">Generate long image</string>
+    <string name="menu_generate_long_image">Save as Image</string>
     <string name="menu_send_to_desktop">Send to home</string>
     <string name="menu_alert">Remind me</string>
     <string name="menu_remove_remind">Delete reminder</string>
@@ -83,7 +79,6 @@
     <string name="error_sdcard_export">Export failed, please check SD card</string>
     <string name="error_no_share_app">No app available to share this note</string>
     <string name="error_storage_permission_denied">Storage permission denied</string>
-    <string name="error_export_permission_denied">Storage permission denied, export unavailable</string>
     <string name="error_long_image_save_failed">Save image failed</string>
     <string name="error_note_not_exist">The note is not exist</string>
     <string name="error_note_empty_for_export">Cannot export an empty note</string>
@@ -92,7 +87,6 @@
     <string name="success_sdcard_export">Export successful</string>
     <string name="success_long_image_saved">Image saved to gallery</string>
     <string name="failed_sdcard_export">Export fail</string>
-    <string name="format_exported_file_location">Export text file (%1$s) to SD (%2$s) directory</string>
     <!-- Sync -->
     <string name="ticker_syncing">Syncing notes...</string>
     <string name="ticker_success">Sync is successful</string>
@@ -133,6 +127,12 @@
     <string name="search_hint">Search notes</string>
     <string name="search_setting_description">Text in your notes</string>
     <string name="search">Notes</string>
+    <string name="footer_items_empty">Nothing here yet</string>
+    <string name="footer_call_notes_empty">No call notes yet</string>
+    <string name="footer_items_count">%1$d items here</string>
+    <string name="footer_call_notes_count">%1$d call notes</string>
+    <string name="footer_hint_add_note">Tap the bottom button to add a note</string>
+    <string name="footer_hint_search">Use search above to find notes faster</string>
     <string name="datetime_dialog_ok">set</string>
     <string name="datetime_dialog_cancel">cancel</string>
     <plurals name="search_results_title">
