@@ -1,13 +1,9 @@
 package net.micode.notes.ui
 
-import android.app.Activity
 import android.app.AlarmManager
 import android.app.PendingIntent
-import android.app.SearchManager
 import android.appwidget.AppWidgetManager
 import android.content.ActivityNotFoundException
-import android.content.ContentUris
-import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -25,11 +21,14 @@ import androidx.compose.runtime.setValue
 import androidx.core.content.edit
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.ViewModelProvider
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import net.micode.notes.R
 import net.micode.notes.data.Notes
 import net.micode.notes.data.Notes.TextNote
+import net.micode.notes.data.NotesRepository
 import net.micode.notes.model.WorkingNote
-import net.micode.notes.tool.DataUtils
+import net.micode.notes.tool.NotesPreferences
 import net.micode.notes.tool.PendingIntentCompat
 import net.micode.notes.tool.ResourceParser
 import net.micode.notes.tool.defaultPreferences
@@ -38,13 +37,15 @@ import net.micode.notes.widget.NoteWidgetUpdater
 class NoteEditActivity : ComponentActivity() {
     private lateinit var workingNote: WorkingNote
     private lateinit var sharedPrefs: SharedPreferences
-    private var userQuery = ""
     private var uiState by mutableStateOf(NoteEditUiState())
     private var deleteDialogVisible by mutableStateOf(false)
     private var reminderDialogState by mutableStateOf<ReminderDialogUiState?>(null)
 
     private val noteEditViewModel: NoteEditViewModel by lazy {
         ViewModelProvider(this)[NoteEditViewModel::class.java]
+    }
+    private val notesRepository: NotesRepository by lazy {
+        NotesRepository(applicationContext)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -83,14 +84,9 @@ class NoteEditActivity : ComponentActivity() {
                     },
                     onContentChange = { uiState = uiState.copy(content = it) },
                     onNewNote = { createNewNote() },
-                    onDelete = { deleteDialogVisible = true },
+                    onDelete = { requestDeleteCurrentNote() },
                     onDismissDeleteDialog = { deleteDialogVisible = false },
-                    onConfirmDelete = {
-                        deleteDialogVisible = false
-                        setResult(RESULT_OK)
-                        deleteCurrentNote()
-                        finish()
-                    },
+                    onConfirmDelete = { confirmDeleteCurrentNote() },
                     onToggleChecklist = { toggleChecklistMode() },
                     onShare = { shareCurrentNote() },
                     onExportText = { exportCurrentNoteAsTxt() },
@@ -105,7 +101,7 @@ class NoteEditActivity : ComponentActivity() {
                     onDismissReminderDialog = { reminderDialogState = null },
                     onConfirmReminder = { date ->
                         reminderDialogState = null
-                        workingNote.setAlertDate(date, true)
+                        workingNote.setAlertDate(date)
                         updateAlarm(date, true)
                         uiState = uiState.copy(alertDate = date)
                     },
@@ -152,14 +148,11 @@ class NoteEditActivity : ComponentActivity() {
         @Suppress("DEPRECATION")
         val note = if (intent.action == Intent.ACTION_VIEW) {
             var noteId = intent.getLongExtra(Intent.EXTRA_UID, 0)
-            userQuery = ""
 
-            if (intent.hasExtra(SearchManager.EXTRA_DATA_KEY)) {
-                noteId = intent.getStringExtra(SearchManager.EXTRA_DATA_KEY)?.toLongOrNull() ?: 0L
-                userQuery = intent.getStringExtra(SearchManager.USER_QUERY).orEmpty()
+            val visible = runBlocking(Dispatchers.IO) {
+                notesRepository.isVisibleNote(noteId, Notes.TYPE_NOTE)
             }
-
-            if (!DataUtils.visibleInNoteDatabase(contentResolver, noteId, Notes.TYPE_NOTE)) {
+            if (!visible) {
                 startActivity(Intent(this, NotesListActivity::class.java))
                 showToast(R.string.error_note_not_exist)
                 return false
@@ -188,11 +181,9 @@ class NoteEditActivity : ComponentActivity() {
             val phoneNumber = intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER)
             val callDate = intent.getLongExtra(Notes.INTENT_EXTRA_CALL_DATE, 0)
             val createdNote = if (callDate != 0L && phoneNumber != null) {
-                val noteId = DataUtils.getNoteIdByPhoneNumberAndCallDate(
-                    contentResolver,
-                    phoneNumber,
-                    callDate
-                )
+                val noteId = runBlocking(Dispatchers.IO) {
+                    notesRepository.getNoteIdByPhoneNumberAndCallDate(phoneNumber, callDate)
+                }
                 if (noteId > 0) {
                     loadWorkingNote(noteId) ?: return false
                 } else {
@@ -282,27 +273,40 @@ class NoteEditActivity : ComponentActivity() {
 
     private fun deleteCurrentNote() {
         if (workingNote.existInDatabase()) {
-            val ids = hashSetOf<Long?>()
             val id = workingNote.noteId
-            if (id != Notes.ID_ROOT_FOLDER.toLong()) {
-                ids.add(id)
-            }
-            val deleted = if (!isSyncMode) {
-                DataUtils.batchDeleteNotes(contentResolver, ids)
+            val deleted = if (id != Notes.ID_ROOT_FOLDER.toLong()) {
+                runBlocking(Dispatchers.IO) {
+                    notesRepository.deleteNotes(setOf(id))
+                }
             } else {
-                DataUtils.batchMoveToFolder(contentResolver, ids, Notes.ID_TRASH_FOLER.toLong())
+                false
             }
             if (!deleted) {
                 Log.e(TAG, "Delete note failed")
             }
         }
-        workingNote.markDeleted(true)
+        workingNote.markDeleted()
         updateWidgetIfNeeded()
+    }
+
+    private fun requestDeleteCurrentNote() {
+        if (NotesPreferences.isDeleteConfirmationEnabled(this)) {
+            deleteDialogVisible = true
+        } else {
+            confirmDeleteCurrentNote()
+        }
+    }
+
+    private fun confirmDeleteCurrentNote() {
+        deleteDialogVisible = false
+        setResult(RESULT_OK)
+        deleteCurrentNote()
+        finish()
     }
 
     private fun clearReminder() {
         reminderDialogState = null
-        workingNote.setAlertDate(0, false)
+        workingNote.setAlertDate(0)
         updateAlarm(0, false)
         uiState = uiState.copy(alertDate = 0L)
     }
@@ -317,7 +321,7 @@ class NoteEditActivity : ComponentActivity() {
         }
 
         val intent = Intent(this, AlarmReceiver::class.java).apply {
-            data = ContentUris.withAppendedId(Notes.CONTENT_NOTE_URI, workingNote.noteId)
+            putExtra(Intent.EXTRA_UID, workingNote.noteId)
         }
         val pendingIntent = PendingIntent.getBroadcast(
             this,
@@ -424,7 +428,7 @@ class NoteEditActivity : ComponentActivity() {
         val saved = workingNote.saveNote()
         if (saved) {
             setResult(RESULT_OK)
-            uiState = uiState.copy(modifiedDate = System.currentTimeMillis())
+            uiState = uiState.copy(modifiedDate = workingNote.modifiedDate)
             updateWidgetIfNeeded()
         }
         return saved
@@ -462,9 +466,6 @@ class NoteEditActivity : ComponentActivity() {
 
     private val currentNoteTextForLongImage: String
         get() = uiState.content
-
-    private val isSyncMode: Boolean
-        get() = NotesPreferenceActivity.getSyncAccountName(this).isNotBlank()
 
     private fun makeShortcutIconTitle(content: String): String {
         val title = content.replace(TAG_CHECKED, "").replace(TAG_UNCHECKED, "")

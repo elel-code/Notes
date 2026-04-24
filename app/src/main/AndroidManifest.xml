@@ -65,21 +65,7 @@
                 <data android:mimeType="vnd.android.cursor.item/call_note" />
             </intent-filter>
 
-            <intent-filter>
-                <action android:name="android.intent.action.SEARCH" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.app.searchable"
-                android:resource="@xml/searchable" />
         </activity>
-
-        <provider
-            android:name="net.micode.notes.data.NotesProvider"
-            android:authorities="micode_notes"
-            android:exported="false"
-            android:multiprocess="true" />
 
         <receiver
             android:name=".widget.NoteWidgetProvider_2x"
@@ -139,14 +125,5 @@
             android:launchMode="singleTop"
             android:theme="@style/NoteComposeTheme" >
         </activity>
-
-        <service
-            android:name="net.micode.notes.gtask.remote.GTaskSyncService"
-            android:exported="false" >
-        </service>
-
-        <meta-data
-            android:name="android.app.default_searchable"
-            android:value=".ui.NoteEditActivity" />
     </application>
 </manifest>

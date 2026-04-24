@@ -27,8 +27,6 @@
     <string name="notealert_enter">查看</string>
     <!-- note list string -->
     <string name="menu_create_folder">新建文件夾</string>
-    <string name="menu_sync">同步</string>
-    <string name="menu_sync_cancel">取消同步</string>
     <string name="menu_setting">設置</string>
     <string name="action_back">返回</string>
     <string name="action_more">更多</string>
@@ -71,41 +69,25 @@
     <string name="error_note_empty_for_send_to_desktop">不能將空便籤發送到桌面</string>
     <string name="success_sdcard_export">導出成功</string>
     <string name="success_long_image_saved">已保存到相冊</string>
-    <!-- Sync -->
-    <string name="ticker_syncing">同步便簽…</string>
-    <string name="ticker_success">同步成功</string>
-    <string name="ticker_fail">同步失敗</string>
-    <string name="ticker_cancel">同步已取消</string>
-    <string name="success_sync_account">與%1$s同步成功</string>
-    <string name="error_sync_network">同步失敗，請檢查網絡和帳號設置</string>
-    <string name="error_sync_internal">同步失敗，發生內部錯誤</string>
-    <string name="error_sync_cancelled">同步已取消</string>
-    <string name="sync_progress_login">登陸%1$s…</string>
-    <string name="sync_progress_init_list">正在獲取服務器便籤列表…</string>
-    <string name="sync_progress_syncing">正在同步本地便籤…</string>
     <!-- Preferences -->
     <string name="preferences_title">設置</string>
-    <string name="preferences_account_title">同步賬號</string>
-    <string name="preferences_account_summary">与google task同步便簽記錄</string>
-    <string name="preferences_last_sync_time">上次同步于 %1$s</string>
-    <string name="preferences_add_account">添加賬號</string>
-    <string name="preferences_menu_change_account">更換賬號</string>
-    <string name="preferences_menu_remove_account">刪除賬號</string>
-    <string name="preferences_button_sync_immediately">立即同步</string>
-    <string name="preferences_button_sync_cancel">取消同步</string>
-    <string name="preferences_dialog_change_account_title">當前帳號 %1$s</string>
-    <string name="preferences_dialog_change_account_warn_msg">如更換同步帳號，過去的帳號同步信息將被清空，再次切換的同時可能會造成數據重復</string>
-    <string name="preferences_dialog_select_account_title">同步便簽</string>
-    <string name="preferences_dialog_select_account_tips">請選擇google帳號，便簽將與該帳號的google task內容同步。</string>
-    <string name="preferences_toast_cannot_change_account">正在同步中，不能修改同步帳號</string>
-    <string name="preferences_toast_success_set_accout">同步帳號已設置為%1$s</string>
     <string name="preferences_bg_random_appear_title">新建便籤背景顏色隨機</string>
+    <string name="preferences_default_color_title">默認新建便籤顏色</string>
+    <string name="preferences_sort_title">列表排序</string>
+    <string name="preferences_sort_modified_desc">最近修改優先</string>
+    <string name="preferences_sort_modified_asc">最早修改優先</string>
+    <string name="preferences_sort_title_asc">按標題排序</string>
+    <string name="preferences_delete_confirmation_title">刪除前確認</string>
+    <string name="preferences_remember_last_folder_title">記住上次打開的文件夾</string>
+    <string name="color_yellow">黃色</string>
+    <string name="color_blue">藍色</string>
+    <string name="color_white">白色</string>
+    <string name="color_green">綠色</string>
+    <string name="color_red">紅色</string>
     <string name="call_record_folder_name">通話便籤</string>
     <string name="hint_foler_name">請輸入名稱</string>
 
-    <string name="search_label">正在搜索便籤</string>
     <string name="search_hint">搜索便籤</string>
-    <string name="search_setting_description">便籤中的文字</string>
     <string name="note_editor_placeholder">寫點什麼…</string>
     <string name="checklist_placeholder">每行一項…</string>
     <string name="footer_items_empty">這裡還沒有內容</string>

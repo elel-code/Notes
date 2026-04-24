@@ -75,7 +75,6 @@ data class FolderDialogUiState(
 @Composable
 fun NotesListScreen(
     state: NotesListUiState,
-    isSyncMode: Boolean,
     folderDialogState: FolderDialogUiState?,
     onBack: () -> Unit,
     onSearchTextChange: (String) -> Unit,
@@ -88,7 +87,6 @@ fun NotesListScreen(
     onRenameFolder: (NotesListItemUi) -> Unit,
     onDeleteFolder: (NotesListItemUi) -> Unit,
     onOpenSettings: () -> Unit,
-    onSyncClick: () -> Unit,
     onFolderDialogNameChange: (String) -> Unit,
     onDismissFolderDialog: () -> Unit,
     onConfirmFolderDialog: () -> Unit
@@ -163,12 +161,10 @@ fun NotesListScreen(
             }
             BottomBar(
                 state = state,
-                isSyncMode = isSyncMode,
                 onCreateNote = onCreateNote,
                 onCreateFolder = onCreateFolder,
                 onDeleteSelection = onDeleteSelection,
-                onClearSelection = onClearSelection,
-                onSyncClick = onSyncClick
+                onClearSelection = onClearSelection
             )
         }
 
@@ -503,12 +499,10 @@ private fun EmptyState(isCallRecordFolder: Boolean) {
 @Composable
 private fun BottomBar(
     state: NotesListUiState,
-    isSyncMode: Boolean,
     onCreateNote: () -> Unit,
     onCreateFolder: () -> Unit,
     onDeleteSelection: () -> Unit,
-    onClearSelection: () -> Unit,
-    onSyncClick: () -> Unit
+    onClearSelection: () -> Unit
 ) {
     val selectionActive = state.selectedIds.isNotEmpty()
     val showPrimaryAction = !state.isCallRecordFolder
@@ -558,30 +552,11 @@ private fun BottomBar(
         }
 
         if (showSecondaryActions) {
-            Row(
+            FilledTonalButton(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                onClick = onCreateFolder
             ) {
-                FilledTonalButton(
-                    modifier = Modifier.weight(1f),
-                    onClick = onCreateFolder
-                ) {
-                    Text(text = stringResource(R.string.menu_create_folder))
-                }
-                FilledTonalButton(
-                    modifier = Modifier.weight(1f),
-                    onClick = onSyncClick
-                ) {
-                    Text(
-                        text = stringResource(
-                            if (isSyncMode && net.micode.notes.gtask.remote.GTaskSyncService.isSyncing) {
-                                R.string.menu_sync_cancel
-                            } else {
-                                R.string.menu_sync
-                            }
-                        )
-                    )
-                }
+                Text(text = stringResource(R.string.menu_create_folder))
             }
         }
     }

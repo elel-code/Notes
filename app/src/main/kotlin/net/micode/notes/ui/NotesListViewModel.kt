@@ -1,20 +1,19 @@
 package net.micode.notes.ui
 
-import android.content.ContentResolver
 import android.content.Context
-import android.database.Cursor
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.micode.notes.data.Notes
-import net.micode.notes.data.Notes.NoteColumns
-import net.micode.notes.tool.DataUtils
+import net.micode.notes.data.NotesRepository
+import net.micode.notes.data.room.NoteListRow
+import net.micode.notes.tool.NotesPreferences
 
 data class NotesListItemUi(
     val id: Long,
@@ -59,11 +58,13 @@ class NotesListViewModel : ViewModel() {
         _uiState.update { it.copy(isLoading = true) }
 
         viewModelScope.launch(Dispatchers.IO) {
-            val items = loadItems(
-                context = context.applicationContext,
+            val items = NotesRepository(context).loadListItems(
                 folderId = currentState.currentFolderId,
-                searchText = currentState.searchText
-            )
+                searchText = currentState.searchText,
+                sortMode = NotesPreferences.getListSortMode(context)
+            ).map { item ->
+                item.toUi()
+            }
 
             withContext(Dispatchers.Main) {
                 if (generation != queryGeneration) {
@@ -103,6 +104,16 @@ class NotesListViewModel : ViewModel() {
         refresh(context)
     }
 
+    fun restoreFolder(folderId: Long, folderTitle: String) {
+        _uiState.update {
+            it.copy(
+                currentFolderId = folderId,
+                currentFolderTitle = folderTitle,
+                selectedIds = emptySet()
+            )
+        }
+    }
+
     fun goToRoot(context: Context) {
         _uiState.update {
             it.copy(
@@ -129,8 +140,7 @@ class NotesListViewModel : ViewModel() {
     }
 
     fun deleteSelectedNotes(
-        contentResolver: ContentResolver,
-        isSyncMode: Boolean,
+        context: Context,
         onComplete: (Set<AppWidgetAttribute>) -> Unit
     ) {
         val selectedIds = _uiState.value.selectedIds
@@ -144,16 +154,7 @@ class NotesListViewModel : ViewModel() {
             .mapTo(linkedSetOf()) { it.widget }
 
         viewModelScope.launch(Dispatchers.IO) {
-            val noteIds = selectedIds.mapTo(hashSetOf<Long?>()) { it }
-            val success = if (isSyncMode) {
-                DataUtils.batchMoveToFolder(
-                    contentResolver,
-                    noteIds,
-                    Notes.ID_TRASH_FOLER.toLong()
-                )
-            } else {
-                DataUtils.batchDeleteNotes(contentResolver, noteIds)
-            }
+            val success = NotesRepository(context).deleteNotes(selectedIds)
 
             if (!success) {
                 Log.e(TAG, "Failed to delete selected notes")
@@ -167,9 +168,8 @@ class NotesListViewModel : ViewModel() {
     }
 
     fun deleteFolder(
-        contentResolver: ContentResolver,
+        context: Context,
         folderId: Long,
-        isSyncMode: Boolean,
         onComplete: (Set<AppWidgetAttribute>) -> Unit
     ) {
         if (folderId == Notes.ID_ROOT_FOLDER.toLong()) {
@@ -179,17 +179,9 @@ class NotesListViewModel : ViewModel() {
         }
 
         viewModelScope.launch(Dispatchers.IO) {
-            val ids = hashSetOf<Long?>(folderId)
-            val widgets = DataUtils.getFolderNoteWidget(contentResolver, folderId)
-                .orEmpty()
-                .filterNotNull()
-                .toSet()
-
-            val success = if (isSyncMode) {
-                DataUtils.batchMoveToFolder(contentResolver, ids, Notes.ID_TRASH_FOLER.toLong())
-            } else {
-                DataUtils.batchDeleteNotes(contentResolver, ids)
-            }
+            val repository = NotesRepository(context)
+            val widgets = repository.collectFolderWidgets(folderId)
+            val success = repository.deleteFolder(folderId)
 
             if (!success) {
                 Log.e(TAG, "Failed to delete folder $folderId")
@@ -201,98 +193,80 @@ class NotesListViewModel : ViewModel() {
         }
     }
 
-    private fun loadItems(
+    fun saveFolder(
         context: Context,
-        folderId: Long,
-        searchText: String
-    ): List<NotesListItemUi> {
-        val trimmedSearchText = searchText.trim()
-        var selection = if (folderId == Notes.ID_ROOT_FOLDER.toLong()) {
-            ROOT_FOLDER_SELECTION
-        } else {
-            NORMAL_SELECTION
-        }
-        val selectionArgs = mutableListOf(folderId.toString())
-        if (trimmedSearchText.isNotEmpty()) {
-            selection = "($selection) AND (${NoteColumns.Companion.SNIPPET} LIKE ?)"
-            selectionArgs += "%$trimmedSearchText%"
+        dialogState: FolderDialogUiState,
+        onDuplicateName: () -> Unit,
+        onComplete: (Boolean) -> Unit
+    ) {
+        val name = dialogState.name.trim()
+        if (name.isEmpty()) {
+            onComplete(false)
+            return
         }
 
-        val cursor = context.contentResolver.query(
-            Notes.CONTENT_NOTE_URI,
-            PROJECTION,
-            selection,
-            selectionArgs.toTypedArray(),
-            "${NoteColumns.Companion.TYPE} DESC,${NoteColumns.Companion.MODIFIED_DATE} DESC"
-        ) ?: return emptyList()
-
-        cursor.use {
-            return buildList {
-                while (it.moveToNext()) {
-                    add(it.toItem())
+        viewModelScope.launch(Dispatchers.IO) {
+            val repository = NotesRepository(context)
+            val duplicateName = (dialogState.create || !name.contentEquals(dialogState.folder?.title)) &&
+                repository.hasVisibleFolderNamed(name)
+            if (duplicateName) {
+                withContext(Dispatchers.Main) {
+                    onDuplicateName()
                 }
+                return@launch
+            }
+
+            val success = if (dialogState.create) {
+                repository.createFolder(name) > 0
+            } else {
+                val folderId = dialogState.folder?.id
+                if (folderId == null) {
+                    Log.e(TAG, "Missing folder while renaming")
+                    false
+                } else {
+                    repository.renameFolder(folderId, name)
+                }
+            }
+
+            if (!success) {
+                Log.e(TAG, "Failed to save folder")
+            }
+
+            withContext(Dispatchers.Main) {
+                if (success && !dialogState.create && _uiState.value.currentFolderId == dialogState.folder?.id) {
+                    _uiState.update { state ->
+                        state.copy(currentFolderTitle = name)
+                    }
+                }
+                onComplete(success)
             }
         }
     }
 
-    private fun Cursor.toItem(): NotesListItemUi {
-        val snippet = getString(SNIPPET_COLUMN)
-            .replace(NoteEditActivity.TAG_CHECKED, "")
-            .replace(NoteEditActivity.TAG_UNCHECKED, "")
-            .trim()
-
-        return NotesListItemUi(
-            id = getLong(ID_COLUMN),
-            title = snippet,
-            type = getInt(TYPE_COLUMN),
-            folderId = getLong(PARENT_ID_COLUMN),
-            modifiedDate = getLong(MODIFIED_DATE_COLUMN),
-            notesCount = getInt(NOTES_COUNT_COLUMN),
-            bgColorId = getInt(BG_COLOR_ID_COLUMN),
-            hasAttachment = getInt(HAS_ATTACHMENT_COLUMN) > 0,
-            hasAlert = getLong(ALERT_DATE_COLUMN) > 0L,
-            widget = AppWidgetAttribute(
-                widgetId = getInt(WIDGET_ID_COLUMN),
-                widgetType = getInt(WIDGET_TYPE_COLUMN)
-            )
-        )
-    }
-
     companion object {
         private const val TAG = "NotesListViewModel"
-
-        private val PROJECTION = arrayOf(
-            NoteColumns.Companion.ID,
-            NoteColumns.Companion.ALERTED_DATE,
-            NoteColumns.Companion.BG_COLOR_ID,
-            NoteColumns.Companion.CREATED_DATE,
-            NoteColumns.Companion.HAS_ATTACHMENT,
-            NoteColumns.Companion.MODIFIED_DATE,
-            NoteColumns.Companion.NOTES_COUNT,
-            NoteColumns.Companion.PARENT_ID,
-            NoteColumns.Companion.SNIPPET,
-            NoteColumns.Companion.TYPE,
-            NoteColumns.Companion.WIDGET_ID,
-            NoteColumns.Companion.WIDGET_TYPE
-        )
-
-        private const val ID_COLUMN = 0
-        private const val ALERT_DATE_COLUMN = 1
-        private const val BG_COLOR_ID_COLUMN = 2
-        private const val HAS_ATTACHMENT_COLUMN = 4
-        private const val MODIFIED_DATE_COLUMN = 5
-        private const val NOTES_COUNT_COLUMN = 6
-        private const val PARENT_ID_COLUMN = 7
-        private const val SNIPPET_COLUMN = 8
-        private const val TYPE_COLUMN = 9
-        private const val WIDGET_ID_COLUMN = 10
-        private const val WIDGET_TYPE_COLUMN = 11
-
-        private val NORMAL_SELECTION = "${NoteColumns.Companion.PARENT_ID}=?"
-
-        private val ROOT_FOLDER_SELECTION = (
-            "(${NoteColumns.Companion.TYPE}<>${Notes.TYPE_SYSTEM} AND ${NoteColumns.Companion.PARENT_ID}=?)" +
-                " OR (${NoteColumns.Companion.ID}=${Notes.ID_CALL_RECORD_FOLDER} AND ${NoteColumns.Companion.NOTES_COUNT}>0)"
-            )
     }
+}
+
+private fun NoteListRow.toUi(): NotesListItemUi {
+    val title = snippet
+        .replace(NoteEditActivity.TAG_CHECKED, "")
+        .replace(NoteEditActivity.TAG_UNCHECKED, "")
+        .trim()
+
+    return NotesListItemUi(
+        id = id,
+        title = title,
+        type = type,
+        folderId = parentId,
+        modifiedDate = modifiedDate,
+        notesCount = notesCount,
+        bgColorId = bgColorId,
+        hasAttachment = hasAttachment > 0,
+        hasAlert = alertedDate > 0L,
+        widget = AppWidgetAttribute(
+            widgetId = widgetId,
+            widgetType = widgetType
+        )
+    )
 }

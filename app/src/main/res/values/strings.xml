@@ -28,8 +28,6 @@
     <!-- notes list string -->
     <string name="format_folder_files_count" translatable="false">(%d)</string>
     <string name="menu_create_folder">New Folder</string>
-    <string name="menu_sync">Sync</string>
-    <string name="menu_sync_cancel">Cancel syncing</string>
     <string name="menu_setting">Settings</string>
     <string name="action_back">Back</string>
     <string name="action_more">More</string>
@@ -75,42 +73,25 @@
     <string name="error_note_empty_for_send_to_desktop">Sorry, can not send and empty note to home</string>
     <string name="success_sdcard_export">Export successful</string>
     <string name="success_long_image_saved">Image saved to gallery</string>
-    <!-- Sync -->
-    <string name="ticker_syncing">Syncing notes…</string>
-    <string name="ticker_success">Sync is successful</string>
-    <string name="ticker_fail">Sync is failed</string>
-    <string name="ticker_cancel">Sync is canceled</string>
-    <string name="success_sync_account">Sync is successful with account %1$s</string>
-    <string name="error_sync_network">Sync failed, please check network and account settings</string>
-    <string name="error_sync_internal">Sync failed, internal error occurs</string>
-    <string name="error_sync_cancelled">Sync is canceled</string>
-    <string name="sync_progress_login">Logging into %1$s…</string>
-    <string name="sync_progress_init_list">Getting remote note list…</string>
-    <string name="sync_progress_syncing">Synchronize local notes with Google Task…</string>
     <!-- Preferences -->
     <string name="preferences_title">Settings</string>
-    <string name="preferences_account_title">Sync account</string>
-    <string name="preferences_account_summary">Sync notes with google task</string>
-    <string name="preferences_last_sync_time">Last sync time %1$s</string>
-    <string name="preferences_last_sync_time_format" translatable="false">yyyy-MM-dd hh:mm:ss</string>
-    <string name="preferences_add_account">Add account</string>
-    <string name="preferences_menu_change_account">Change sync account</string>
-    <string name="preferences_menu_remove_account">Remove sync account</string>
-    <string name="preferences_button_sync_immediately">Sync immediately</string>
-    <string name="preferences_button_sync_cancel">Cancel syncing</string>
-    <string name="preferences_dialog_change_account_title">Current account %1$s</string>
-    <string name="preferences_dialog_change_account_warn_msg">All sync related information will be deleted, which may result in duplicated items sometime</string>
-    <string name="preferences_dialog_select_account_title">Sync notes</string>
-    <string name="preferences_dialog_select_account_tips">Please select a google account. Local notes will be synced with google task.</string>
-    <string name="preferences_toast_cannot_change_account">Cannot change the account because sync is in progress</string>
-    <string name="preferences_toast_success_set_accout">%1$s has been set as the sync account</string>
     <string name="preferences_bg_random_appear_title">New note background color random</string>
+    <string name="preferences_default_color_title">Default new note color</string>
+    <string name="preferences_sort_title">List sorting</string>
+    <string name="preferences_sort_modified_desc">Newest updated first</string>
+    <string name="preferences_sort_modified_asc">Oldest updated first</string>
+    <string name="preferences_sort_title_asc">Title A-Z</string>
+    <string name="preferences_delete_confirmation_title">Confirm before delete</string>
+    <string name="preferences_remember_last_folder_title">Remember last folder</string>
+    <string name="color_yellow">Yellow</string>
+    <string name="color_blue">Blue</string>
+    <string name="color_white">White</string>
+    <string name="color_green">Green</string>
+    <string name="color_red">Red</string>
     <string name="call_record_folder_name">Call notes</string>
     <string name="hint_foler_name">Input name</string>
 
-    <string name="search_label">Searching Notes</string>
     <string name="search_hint">Search notes</string>
-    <string name="search_setting_description">Text in your notes</string>
     <string name="note_editor_placeholder">Write something…</string>
     <string name="checklist_placeholder">One item per line…</string>
     <string name="footer_items_empty">Nothing here yet</string>

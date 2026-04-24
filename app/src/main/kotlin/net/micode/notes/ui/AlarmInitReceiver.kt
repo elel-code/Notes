@@ -18,11 +18,11 @@ package net.micode.notes.ui
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
-import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
-import net.micode.notes.data.Notes
-import net.micode.notes.data.Notes.NoteColumns
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import net.micode.notes.data.NotesRepository
 import net.micode.notes.tool.PendingIntentCompat
 
 class AlarmInitReceiver : BroadcastReceiver() {
@@ -32,46 +32,21 @@ class AlarmInitReceiver : BroadcastReceiver() {
         }
 
         val currentDate = System.currentTimeMillis()
-        val c = context.getContentResolver().query(
-            Notes.CONTENT_NOTE_URI,
-            PROJECTION,
-            NoteColumns.Companion.ALERTED_DATE + ">? AND " + NoteColumns.Companion.TYPE + "=" + Notes.TYPE_NOTE,
-            arrayOf<String>(currentDate.toString()),
-            null
-        )
-
-        if (c != null) {
-            if (c.moveToFirst()) {
-                do {
-                    val alertDate = c.getLong(COLUMN_ALERTED_DATE)
-                    val sender = Intent(context, AlarmReceiver::class.java)
-                    sender.setData(
-                        ContentUris.withAppendedId(
-                            Notes.CONTENT_NOTE_URI, c.getLong(
-                                COLUMN_ID
-                            )
-                        )
-                    )
-                    val pendingIntent = PendingIntent.getBroadcast(
-                        context, 0, sender,
-                        PendingIntentCompat.immutableFlag()
-                    )
-                    val alermManager = context
-                        .getSystemService(Context.ALARM_SERVICE) as AlarmManager
-                    alermManager.set(AlarmManager.RTC_WAKEUP, alertDate, pendingIntent)
-                } while (c.moveToNext())
-            }
-            c.close()
+        val alarms = runBlocking(Dispatchers.IO) {
+            NotesRepository(context.applicationContext).getFutureAlertNotes(currentDate)
         }
-    }
-
-    companion object {
-        private val PROJECTION: Array<String> = arrayOf(
-            NoteColumns.Companion.ID,
-            NoteColumns.Companion.ALERTED_DATE
-        )
-
-        private const val COLUMN_ID = 0
-        private const val COLUMN_ALERTED_DATE = 1
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarms.forEach { alarm ->
+            val sender = Intent(context, AlarmReceiver::class.java).apply {
+                putExtra(Intent.EXTRA_UID, alarm.noteId)
+            }
+            val pendingIntent = PendingIntent.getBroadcast(
+                context,
+                0,
+                sender,
+                PendingIntentCompat.immutableFlag()
+            )
+            alarmManager.set(AlarmManager.RTC_WAKEUP, alarm.alertedDate, pendingIntent)
+        }
     }
 }

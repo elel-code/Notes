@@ -15,12 +15,7 @@
  */
 package net.micode.notes.data
 
-import android.net.Uri
-import androidx.core.net.toUri
-
 object Notes {
-    const val AUTHORITY: String = "micode_notes"
-    const val TAG: String = "Notes"
     const val TYPE_NOTE: Int = 0
     const val TYPE_FOLDER: Int = 1
     const val TYPE_SYSTEM: Int = 2
@@ -28,11 +23,9 @@ object Notes {
     /**
      * Following IDs are system folders' identifiers
      * [Notes.ID_ROOT_FOLDER] is default folder
-     * [Notes.ID_TEMPARAY_FOLDER] is for notes belonging no folder
      * [Notes.ID_CALL_RECORD_FOLDER] is to store call records
      */
     const val ID_ROOT_FOLDER: Int = 0
-    val ID_TEMPARAY_FOLDER: Int = -1
     val ID_CALL_RECORD_FOLDER: Int = -2
     val ID_TRASH_FOLER: Int = -3
 
@@ -46,21 +39,6 @@ object Notes {
     val TYPE_WIDGET_INVALIDE: Int = -1
     const val TYPE_WIDGET_2X: Int = 0
     const val TYPE_WIDGET_4X: Int = 1
-
-    /**
-     * Uri to query all notes and folders
-     */
-    val CONTENT_NOTE_URI: Uri = "content://$AUTHORITY/note".toUri()
-
-    /**
-     * Uri to query data
-     */
-    val CONTENT_DATA_URI: Uri = "content://$AUTHORITY/data".toUri()
-
-    object DataConstants {
-        val NOTE: String = TextNote.CONTENT_ITEM_TYPE
-        val CALL_NOTE: String = CallNote.CONTENT_ITEM_TYPE
-    }
 
     interface NoteColumns {
         companion object {
@@ -255,11 +233,7 @@ object Notes {
 
         const val MODE_CHECK_LIST: Int = 1
 
-        const val CONTENT_TYPE: String = "vnd.android.cursor.dir/text_note"
-
         const val CONTENT_ITEM_TYPE: String = "vnd.android.cursor.item/text_note"
-
-        val CONTENT_URI: Uri? = "content://$AUTHORITY/text_note".toUri()
     }
 
     object CallNote : DataColumns {
@@ -275,10 +249,6 @@ object Notes {
          */
         val PHONE_NUMBER: String = DataColumns.Companion.DATA3
 
-        const val CONTENT_TYPE: String = "vnd.android.cursor.dir/call_note"
-
         const val CONTENT_ITEM_TYPE: String = "vnd.android.cursor.item/call_note"
-
-        val CONTENT_URI: Uri? = "content://$AUTHORITY/call_note".toUri()
     }
 }

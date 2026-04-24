@@ -27,9 +27,11 @@ import android.os.Bundle
 import android.os.PowerManager
 import android.view.Window
 import android.view.WindowManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import net.micode.notes.R
 import net.micode.notes.data.Notes
-import net.micode.notes.tool.DataUtils
+import net.micode.notes.data.NotesRepository
 import java.io.IOException
 
 class AlarmAlertActivity : Activity(), DialogInterface.OnClickListener,
@@ -46,9 +48,13 @@ class AlarmAlertActivity : Activity(), DialogInterface.OnClickListener,
         val intent = intent
 
         try {
-            mNoteId = intent.data?.pathSegments?.getOrNull(1)?.toLong()
+            mNoteId = intent.getLongExtra(Intent.EXTRA_UID, 0L).takeIf { it > 0L }
+                ?: intent.data?.pathSegments?.getOrNull(1)?.toLongOrNull()
                 ?: throw IllegalArgumentException("Missing note id in alarm intent")
-            val snippet = DataUtils.getSnippetById(this.getContentResolver(), mNoteId).orEmpty()
+            val repository = NotesRepository(applicationContext)
+            val snippet = runBlocking(Dispatchers.IO) {
+                repository.getSnippetById(mNoteId).orEmpty()
+            }
             mSnippet = if (snippet.length > SNIPPET_PREW_MAX_LEN)
                 snippet.substring(
                     0,
@@ -62,7 +68,10 @@ class AlarmAlertActivity : Activity(), DialogInterface.OnClickListener,
         }
 
         mPlayer = MediaPlayer()
-        if (DataUtils.visibleInNoteDatabase(getContentResolver(), mNoteId, Notes.TYPE_NOTE)) {
+        val visible = runBlocking(Dispatchers.IO) {
+            NotesRepository(applicationContext).isVisibleNote(mNoteId, Notes.TYPE_NOTE)
+        }
+        if (visible) {
             showActionDialog()
             playAlarmSound()
         } else {

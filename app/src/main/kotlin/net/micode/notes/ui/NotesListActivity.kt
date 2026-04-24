@@ -2,7 +2,6 @@ package net.micode.notes.ui
 
 import android.app.AlertDialog
 import android.appwidget.AppWidgetManager
-import android.content.ContentValues
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -19,10 +18,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.micode.notes.R
 import net.micode.notes.data.Notes
-import net.micode.notes.data.Notes.NoteColumns
-import net.micode.notes.gtask.remote.GTaskSyncService
 import net.micode.notes.model.WorkingNote
-import net.micode.notes.tool.DataUtils
+import net.micode.notes.tool.NotesPreferences
 import net.micode.notes.tool.ResourceParser
 import net.micode.notes.tool.defaultPreferences
 import net.micode.notes.widget.NoteWidgetUpdater
@@ -43,13 +40,15 @@ class NotesListActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setAppInfoFromRawRes()
+        if (savedInstanceState == null && notesListViewModel.uiState.value == NotesListUiState()) {
+            restoreLastFolder()
+        }
 
         setContent {
             MaterialTheme {
                 val uiState by notesListViewModel.uiState.collectAsStateWithLifecycle()
                 NotesListScreen(
                     state = uiState,
-                    isSyncMode = isSyncMode,
                     folderDialogState = folderDialogState,
                     onBack = { handleBack() },
                     onSearchTextChange = { notesListViewModel.setSearchText(this, it) },
@@ -70,7 +69,6 @@ class NotesListActivity : ComponentActivity() {
                     },
                     onDeleteFolder = { confirmDeleteFolder(it) },
                     onOpenSettings = { startPreferenceActivity() },
-                    onSyncClick = { handleSyncAction() },
                     onFolderDialogNameChange = { name ->
                         folderDialogState = folderDialogState?.copy(name = name)
                     },
@@ -90,7 +88,10 @@ class NotesListActivity : ComponentActivity() {
         val state = notesListViewModel.uiState.value
         when {
             state.selectedIds.isNotEmpty() -> notesListViewModel.clearSelection()
-            !state.isRoot -> notesListViewModel.goToRoot(this)
+            !state.isRoot -> {
+                notesListViewModel.goToRoot(this)
+                rememberFolder(Notes.ID_ROOT_FOLDER.toLong(), "")
+            }
             else -> finish()
         }
     }
@@ -100,7 +101,10 @@ class NotesListActivity : ComponentActivity() {
         when {
             selectionActive && !item.isFolder -> notesListViewModel.toggleSelection(item.id)
             selectionActive -> Unit
-            item.isFolder -> notesListViewModel.openFolder(this, item)
+            item.isFolder -> {
+                notesListViewModel.openFolder(this, item)
+                rememberFolder(item.id, item.title)
+            }
             else -> openNote(item.id)
         }
     }
@@ -127,6 +131,11 @@ class NotesListActivity : ComponentActivity() {
             return
         }
 
+        if (!NotesPreferences.isDeleteConfirmationEnabled(this)) {
+            deleteSelectedNotes()
+            return
+        }
+
         AlertDialog.Builder(this)
             .setTitle(getString(R.string.alert_title_delete))
             .setIcon(android.R.drawable.ic_dialog_alert)
@@ -137,106 +146,91 @@ class NotesListActivity : ComponentActivity() {
                     selectedCount
                 )
             )
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                notesListViewModel.deleteSelectedNotes(
-                    contentResolver = contentResolver,
-                    isSyncMode = isSyncMode
-                ) { widgets ->
-                    updateWidgets(widgets)
-                    notesListViewModel.refresh(this)
-                }
-            }
+            .setPositiveButton(android.R.string.ok) { _, _ -> deleteSelectedNotes() }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 
     private fun confirmDeleteFolder(folder: NotesListItemUi) {
+        if (!NotesPreferences.isDeleteConfirmationEnabled(this)) {
+            deleteFolder(folder)
+            return
+        }
+
         AlertDialog.Builder(this)
             .setTitle(getString(R.string.alert_title_delete))
             .setIcon(android.R.drawable.ic_dialog_alert)
             .setMessage(getString(R.string.alert_message_delete_folder))
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                notesListViewModel.deleteFolder(
-                    contentResolver = contentResolver,
-                    folderId = folder.id,
-                    isSyncMode = isSyncMode
-                ) { widgets ->
-                    updateWidgets(widgets)
-                    notesListViewModel.refresh(this)
-                }
-            }
+            .setPositiveButton(android.R.string.ok) { _, _ -> deleteFolder(folder) }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 
-    private fun confirmFolderDialog() {
-        val dialogState = folderDialogState ?: return
-        val name = dialogState.name.trim()
-        if (name.isEmpty()) {
-            return
+    private fun deleteSelectedNotes() {
+        notesListViewModel.deleteSelectedNotes(context = this) { widgets ->
+            updateWidgets(widgets)
+            notesListViewModel.refresh(this)
         }
-
-        if (DataUtils.checkVisibleFolderName(contentResolver, name) &&
-            (dialogState.create || !name.contentEquals(dialogState.folder?.title))
-        ) {
-            Toast.makeText(
-                this,
-                getString(R.string.folder_exist, name),
-                Toast.LENGTH_LONG
-            ).show()
-            return
-        }
-
-        if (dialogState.create) {
-            val values = ContentValues().apply {
-                put(NoteColumns.Companion.SNIPPET, name)
-                put(NoteColumns.Companion.TYPE, Notes.TYPE_FOLDER)
-            }
-            contentResolver.insert(Notes.CONTENT_NOTE_URI, values)
-        } else {
-            val folderId = dialogState.folder?.id ?: run {
-                Log.e(TAG, "Missing folder while renaming")
-                return
-            }
-            val values = ContentValues().apply {
-                put(NoteColumns.Companion.SNIPPET, name)
-                put(NoteColumns.Companion.TYPE, Notes.TYPE_FOLDER)
-                put(NoteColumns.Companion.LOCAL_MODIFIED, 1)
-            }
-            contentResolver.update(
-                Notes.CONTENT_NOTE_URI,
-                values,
-                "${NoteColumns.Companion.ID}=?",
-                arrayOf(folderId.toString())
-            )
-        }
-
-        folderDialogState = null
-        notesListViewModel.refresh(this)
     }
 
-    private fun handleSyncAction() {
-        if (!isSyncMode) {
-            startPreferenceActivity()
-            return
+    private fun deleteFolder(folder: NotesListItemUi) {
+        notesListViewModel.deleteFolder(context = this, folderId = folder.id) { widgets ->
+            if (NotesPreferences.getRememberedFolderId(this) == folder.id) {
+                NotesPreferences.clearRememberedFolder(this)
+            }
+            updateWidgets(widgets)
+            notesListViewModel.refresh(this)
         }
+    }
 
-        if (GTaskSyncService.isSyncing) {
-            GTaskSyncService.cancelSync(this)
-        } else {
-            GTaskSyncService.startSync(this)
-        }
+    private fun confirmFolderDialog() {
+        val dialogState = folderDialogState ?: return
+        notesListViewModel.saveFolder(
+            context = this,
+            dialogState = dialogState,
+            onDuplicateName = {
+                Toast.makeText(
+                    this,
+                    getString(R.string.folder_exist, dialogState.name.trim()),
+                    Toast.LENGTH_LONG
+                ).show()
+            },
+            onComplete = { success ->
+                if (success) {
+                    dialogState.folder?.takeIf { !dialogState.create }?.let { folder ->
+                        if (NotesPreferences.getRememberedFolderId(this) == folder.id) {
+                            rememberFolder(folder.id, dialogState.name.trim())
+                        }
+                    }
+                    folderDialogState = null
+                    notesListViewModel.refresh(this)
+                }
+            }
+        )
     }
 
     private fun updateWidgets(widgets: Set<AppWidgetAttribute>) {
         NoteWidgetUpdater.updateWidgets(this, widgets)
     }
 
-    private val isSyncMode: Boolean
-        get() = NotesPreferenceActivity.getSyncAccountName(this).isNotBlank()
-
     private fun startPreferenceActivity() {
         startActivity(Intent(this, NotesPreferenceActivity::class.java))
+    }
+
+    private fun restoreLastFolder() {
+        val folderId = NotesPreferences.getRememberedFolderId(this)
+        if (folderId == Notes.ID_ROOT_FOLDER.toLong()) {
+            return
+        }
+
+        notesListViewModel.restoreFolder(
+            folderId = folderId,
+            folderTitle = NotesPreferences.getRememberedFolderTitle(this)
+        )
+    }
+
+    private fun rememberFolder(folderId: Long, folderTitle: String) {
+        NotesPreferences.rememberLastFolder(this, folderId, folderTitle)
     }
 
     private fun setAppInfoFromRawRes() {
@@ -257,7 +251,7 @@ class NotesListActivity : ComponentActivity() {
             Notes.ID_ROOT_FOLDER.toLong(),
             AppWidgetManager.INVALID_APPWIDGET_ID,
             Notes.TYPE_WIDGET_INVALIDE,
-            ResourceParser.RED
+            ResourceParser.getDefaultBgId(this)
         )
         note.setWorkingText(introduction)
         if (note.saveNote()) {

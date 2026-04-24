@@ -17,7 +17,6 @@ package net.micode.notes.tool
 
 import android.content.Context
 import net.micode.notes.R
-import net.micode.notes.ui.NotesPreferenceActivity
 import kotlin.random.Random
 
 object ResourceParser {
@@ -37,15 +36,10 @@ object ResourceParser {
     val BG_DEFAULT_FONT_SIZE: Int = TEXT_MEDIUM
 
     fun getDefaultBgId(context: Context): Int {
-        return if (
-            context.defaultPreferences().getBoolean(
-                NotesPreferenceActivity.Companion.PREFERENCE_SET_BG_COLOR_KEY,
-                false
-            )
-        ) {
+        return if (NotesPreferences.isRandomBackgroundEnabled(context)) {
             Random.nextInt(NoteBgResources.resourcesSize)
         } else {
-            BG_DEFAULT_COLOR
+            NotesPreferences.getDefaultBackgroundColor(context)
         }
     }
 

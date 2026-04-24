@@ -16,7 +16,6 @@
 package net.micode.notes.widget
 
 import android.appwidget.AppWidgetManager
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -47,7 +46,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.micode.notes.R
 import net.micode.notes.data.Notes
-import net.micode.notes.data.Notes.NoteColumns
+import net.micode.notes.data.NotesRepository
 import net.micode.notes.tool.ResourceParser
 import net.micode.notes.ui.AppWidgetAttribute
 import net.micode.notes.ui.NoteEditActivity
@@ -89,11 +88,12 @@ internal abstract class NoteGlanceWidget(
 
     protected abstract fun getBackgroundResource(bgId: Int): Int
 
-    private fun loadWidgetModel(
+    private suspend fun loadWidgetModel(
         context: Context,
         appWidgetId: Int,
         widgetType: Int
     ): NoteWidgetModel {
+        val repository = NotesRepository(context.applicationContext)
         var bgId = ResourceParser.getDefaultBgId(context)
         val intent = Intent(context, NoteEditActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
@@ -101,25 +101,16 @@ internal abstract class NoteGlanceWidget(
             putExtra(Notes.INTENT_EXTRA_WIDGET_TYPE, widgetType)
         }
 
-        val snippet = context.contentResolver.query(
-            Notes.CONTENT_NOTE_URI,
-            PROJECTION,
-            "${NoteColumns.Companion.WIDGET_ID}=? AND ${NoteColumns.Companion.PARENT_ID}<>?",
-            arrayOf(appWidgetId.toString(), Notes.ID_TRASH_FOLER.toString()),
-            null
-        )?.use { cursor ->
-            if (!cursor.moveToFirst()) {
-                return@use null
-            }
-
-            if (cursor.count > 1) {
+        val notes = repository.getNotesByWidgetId(appWidgetId)
+        val snippet = notes.firstOrNull()?.let { note ->
+            if (notes.size > 1) {
                 Log.e(TAG, "Multiple notes found with widget id: $appWidgetId")
             }
 
-            bgId = cursor.getInt(COLUMN_BG_COLOR_ID)
-            intent.putExtra(Intent.EXTRA_UID, cursor.getLong(COLUMN_ID))
+            bgId = note.bgColorId
+            intent.putExtra(Intent.EXTRA_UID, note.id)
             intent.action = Intent.ACTION_VIEW
-            cursor.getString(COLUMN_SNIPPET).orEmpty()
+            note.snippet
         } ?: run {
             intent.action = Intent.ACTION_INSERT_OR_EDIT
             context.getString(R.string.widget_havenot_content)
@@ -135,26 +126,12 @@ internal abstract class NoteGlanceWidget(
     }
 
     companion object {
-        private val PROJECTION: Array<String> = arrayOf(
-            NoteColumns.Companion.ID,
-            NoteColumns.Companion.BG_COLOR_ID,
-            NoteColumns.Companion.SNIPPET
-        )
-
-        private const val COLUMN_ID = 0
-        private const val COLUMN_BG_COLOR_ID = 1
-        private const val COLUMN_SNIPPET = 2
         private const val TAG = "NoteWidgetProvider"
 
-        private fun clearWidgetBinding(context: Context, appWidgetId: Int) {
-            val values = ContentValues().apply {
-                put(NoteColumns.Companion.WIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
-            }
-            context.contentResolver.update(
-                Notes.CONTENT_NOTE_URI,
-                values,
-                "${NoteColumns.Companion.WIDGET_ID}=?",
-                arrayOf(appWidgetId.toString())
+        private suspend fun clearWidgetBinding(context: Context, appWidgetId: Int) {
+            NotesRepository(context.applicationContext).clearWidgetBinding(
+                appWidgetId = appWidgetId,
+                invalidWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
             )
         }
     }
