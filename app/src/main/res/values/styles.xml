@@ -1,23 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<!-- Copyright (c) 2010-2011, The MiCode Open Source Community (www.micode.net)
-
-     Licensed under the Apache License, Version 2.0 (the "License");
-     you may not use this file except in compliance with the License.
-     You may obtain a copy of the License at
-
-          http://www.apache.org/licenses/LICENSE-2.0
-
-     Unless required by applicable law or agreed to in writing, software
-     distributed under the License is distributed on an "AS IS" BASIS,
-     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     See the License for the specific language governing permissions and
-     limitations under the License.
+<!--
+  这是一个 Android 应用的样式定义文件 (styles.xml)，用于定义应用的主题和可复用的视觉样式。
+  版权所有信息：归属于 MiCode 开源社区，遵循 Apache 2.0 许可证。
 -->
 
 <resources>
+    <!--
+        定义名为 "NoteComposeTheme" 的应用主题。
+        parent：指定父主题。这里继承自 Android 系统提供的 "@android:style/Theme.Holo.Light.NoActionBar"。
+        含义：
+        - Theme.Holo.Light: 表示使用 Android 3.0+ (Holo) 风格的浅色主题。
+        - .NoActionBar: 表示此主题不包含顶部的 ActionBar（应用栏）。这通常用于全屏或自定义标题栏的界面。
+        此主题很可能应用于笔记编辑或编写界面。
+    -->
     <style name="NoteComposeTheme" parent="@android:style/Theme.Holo.Light.NoActionBar">
+        <!--
+            此处可以定义或覆盖父主题的属性，例如：
+            <item name="android:windowBackground">@color/background</item>
+            <item name="android:textColor">@color/text_primary</item>
+            但在当前文档中，没有额外的属性定义，表示完全使用父主题的样式。
+        -->
     </style>
 
+    <!--
+        定义名为 "NoteListComposeTheme" 的应用主题。
+        与 NoteComposeTheme 相同，它也继承自 "@android:style/Theme.Holo.Light.NoActionBar"。
+        从命名推测，此主题很可能应用于笔记列表界面。
+        将编辑界面和列表界面的主题分开定义，有利于未来对它们进行独立的样式调整。
+    -->
     <style name="NoteListComposeTheme" parent="@android:style/Theme.Holo.Light.NoActionBar" />
+
 </resources>
