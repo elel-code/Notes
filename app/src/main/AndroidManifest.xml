@@ -1,49 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!-- Copyright (c) 2010-2011, The MiCode Open Source Community (www.micode.net)
-
-     Licensed under the Apache License, Version 2.0 (the "License");
-     you may not use this file except in compliance with the License.
-     You may obtain a copy of the License at
-
-          http://www.apache.org/licenses/LICENSE-2.0
-
-     Unless required by applicable law or agreed to in writing, software
-     distributed under the License is distributed on an "AS IS" BASIS,
-     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     See the License for the specific language governing permissions and
-     limitations under the License.
+<!-- 
+    版权声明 (c) 2010-2011, The MiCode Open Source Community (www.micode.net)
+    
+    根据Apache License, Version 2.0（“许可证”）授权；
+    除非遵守许可证，否则您不能使用此文件。
+    您可以在以下网址获取许可证副本：
+    
+         http://www.apache.org/licenses/LICENSE-2.0
+    
+    除非适用法律要求或书面同意，否则根据许可证分发的软件
+    是按“原样”分发的，不附带任何明示或暗示的保证或条件。
+    有关许可证下的具体权限和限制，请参阅许可证。
 -->
 
+<!-- Android清单文件：定义应用的基本信息、组件、权限等 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- ======================== 权限声明 ======================== -->
+    
+    <!-- 允许在启动器中安装快捷方式 -->
     <uses-permission android:name="com.android.launcher.permission.INSTALL_SHORTCUT" />
+    
+    <!-- 允许访问网络，用于同步或其他网络操作 -->
     <uses-permission android:name="android.permission.INTERNET" />
+    
+    <!-- 允许读取联系人数据，用于关联联系人笔记 -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    
+    <!-- 允许管理账户，用于账户同步管理 -->
     <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+    
+    <!-- 允许验证账户，用于账户认证 -->
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
+    
+    <!-- 允许获取账户列表 -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    
+    <!-- 允许使用凭证，用于账户认证凭据 -->
     <uses-permission android:name="android.permission.USE_CREDENTIALS" />
+    
+    <!-- 允许接收开机完成广播，用于启动提醒服务 -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    
+    <!-- 允许发送通知（Android 13+ 必需），用于显示提醒通知 -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- ======================== 应用配置 ======================== -->
     <application
-        android:icon="@drawable/icon_app"
-        android:label="@string/app_name" >
+        android:icon="@drawable/icon_app"        <!-- 应用图标 -->
+        android:label="@string/app_name" >       <!-- 应用名称 -->
+
+        <!-- ======================== 主界面活动 ======================== -->
+        <!-- 笔记列表Activity：显示所有笔记的主界面 -->
         <activity
             android:name=".ui.NotesListActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:exported="true"
-            android:launchMode="singleTop"
-            android:theme="@style/NoteListComposeTheme"
-            android:windowSoftInputMode="adjustResize" >
+            android:configChanges="keyboardHidden|orientation|screenSize"  <!-- 配置变化时不重建Activity -->
+            android:exported="true"               <!-- 允许外部启动此Activity -->
+            android:launchMode="singleTop"        <!-- 栈顶单例模式 -->
+            android:theme="@style/NoteListComposeTheme"  <!-- 自定义主题 -->
+            android:windowSoftInputMode="adjustResize" > <!-- 软键盘弹出时调整界面大小 -->
 
+            <!-- Intent过滤器：定义如何启动此Activity -->
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="android.intent.action.MAIN" />      <!-- 主入口 -->
+                <category android:name="android.intent.category.LAUNCHER" /> <!-- 启动器图标 -->
             </intent-filter>
         </activity>
 
+        <!-- ======================== 笔记编辑活动 ======================== -->
+        <!-- 笔记编辑Activity：用于创建和编辑笔记内容 -->
         <activity
             android:name=".ui.NoteEditActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
@@ -51,13 +77,17 @@
             android:launchMode="singleTop"
             android:theme="@style/NoteComposeTheme" >
 
+            <!-- Intent过滤器：查看笔记 -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
+                <!-- 支持文本笔记的MIME类型 -->
                 <data android:mimeType="vnd.android.cursor.item/text_note" />
+                <!-- 支持通话笔记的MIME类型 -->
                 <data android:mimeType="vnd.android.cursor.item/call_note" />
             </intent-filter>
 
+            <!-- Intent过滤器：插入或编辑笔记 -->
             <intent-filter>
                 <action android:name="android.intent.action.INSERT_OR_EDIT" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -67,20 +97,27 @@
 
         </activity>
 
+        <!-- ======================== 桌面小部件 ======================== -->
+        
+        <!-- 2x2尺寸桌面小部件 -->
         <receiver
             android:name=".widget.NoteWidgetProvider_2x"
             android:exported="true"
             android:label="@string/app_widget2x2" >
+            
             <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="android.appwidget.action.APPWIDGET_DELETED" />
-                <action android:name="android.intent.action.PRIVACY_MODE_CHANGED" />
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />    <!-- 小部件更新 -->
+                <action android:name="android.appwidget.action.APPWIDGET_DELETED" />   <!-- 小部件删除 -->
+                <action android:name="android.intent.action.PRIVACY_MODE_CHANGED" />   <!-- 隐私模式变化 -->
             </intent-filter>
 
+            <!-- 小部件配置元数据 -->
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_2x_info" />
         </receiver>
+        
+        <!-- 4x4尺寸桌面小部件 -->
         <receiver
             android:name=".widget.NoteWidgetProvider_4x"
             android:exported="true"
@@ -97,33 +134,43 @@
                 android:resource="@xml/widget_4x_info" />
         </receiver>
 
+        <!-- ======================== 广播接收器 ======================== -->
+        
+        <!-- 闹钟初始化接收器：在系统启动时初始化提醒 -->
         <receiver
             android:name=".ui.AlarmInitReceiver"
             android:exported="true" >
             <intent-filter>
+                <!-- 监听开机完成广播，重新注册所有未完成的提醒 -->
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
 
+        <!-- 闹钟接收器：处理闹钟触发事件 -->
         <receiver
             android:name="net.micode.notes.ui.AlarmReceiver"
-            android:exported="false"
-            android:process=":remote" >
+            android:exported="false"        
+            android:process=":remote" >       <!-- 在独立远程进程中运行 -->
         </receiver>
 
+        <!-- ======================== 闹钟提醒活动 ======================== -->
+        <!-- 闹钟提醒Activity：当闹钟触发时显示提醒界面 -->
         <activity
             android:name=".ui.AlarmAlertActivity"
             android:exported="false"
-            android:launchMode="singleInstance"
-            android:theme="@android:style/Theme.Holo.Wallpaper.NoTitleBar" >
+            android:launchMode="singleInstance"  
+            android:theme="@android:style/Theme.Holo.Wallpaper.NoTitleBar" > <!-- 全屏无标题栏主题 -->
         </activity>
 
+        <!-- ======================== 偏好设置活动 ======================== -->
+        <!-- 设置界面Activity -->
         <activity
             android:name="net.micode.notes.ui.NotesPreferenceActivity"
             android:exported="false"
-            android:label="@string/preferences_title"
+            android:label="@string/preferences_title"   
             android:launchMode="singleTop"
             android:theme="@style/NoteComposeTheme" >
         </activity>
+        
     </application>
 </manifest>
