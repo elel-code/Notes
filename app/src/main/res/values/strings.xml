@@ -1,109 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<!-- Copyright (c) 2010-2011, The MiCode Open Source Community (www.micode.net)
-
-     Licensed under the Apache License, Version 2.0 (the "License");
-     you may not use this file except in compliance with the License.
-     You may obtain a copy of the License at
-
-          http://www.apache.org/licenses/LICENSE-2.0
-
-     Unless required by applicable law or agreed to in writing, software
-     distributed under the License is distributed on an "AS IS" BASIS,
-     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     See the License for the specific language governing permissions and
-     limitations under the License.
+<!--
+  这是一个 Android 应用资源文件 (strings.xml)，用于存放应用中的所有字符串常量，方便国际化管理和统一修改。
+  版权所有信息：归属于 MiCode 开源社区，遵循 Apache 2.0 许可证。
 -->
 
-<resources xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name">Notes</string>
-    <string name="app_widget2x2">Notes 2x2</string>
-    <string name="app_widget4x4">Notes 4x4</string>
-    <string name="widget_havenot_content">No associated note found, click to create associated note.</string>
-    <string name="notelist_string_info">…</string>
-    <string name="notelist_menu_new">Add note</string>
-    <string name="notealert_ok">Got it</string>
-    <string name="notealert_enter">Take a look</string>
-    <!-- notes list string -->
-    <string name="format_folder_files_count" translatable="false">(%d)</string>
-    <string name="menu_create_folder">New Folder</string>
-    <string name="menu_setting">Settings</string>
-    <string name="action_back">Back</string>
-    <string name="action_more">More</string>
-    <string name="state_enabled">Enabled</string>
-    <string name="state_disabled">Disabled</string>
-    <string name="menu_delete">Delete</string>
-    <plurals name="menu_select_title">
-        <item quantity="one">%d selected</item>
-        <item quantity="other">%d selected</item>
+<resources
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2"> <!-- 引入 Android 和 xliff 命名空间，xliff用于国际化字符串格式化 -->
+
+    <!-- 应用基础信息 -->
+    <string name="app_name">Notes</string> <!-- 应用名称，显示在桌面和应用管理器 -->
+    <string name="app_widget2x2">Notes 2x2</string> <!-- 2x2桌面小部件的名称 -->
+    <string name="app_widget4x4">Notes 4x4</string> <!-- 4x4桌面小部件的名称 -->
+    <string name="widget_havenot_content">No associated note found, click to create associated note.</string> <!-- 当小部件没有关联笔记时的提示语 -->
+
+    <!-- 笔记列表相关字符串 -->
+    <string name="notelist_string_info">…</string> <!-- （内容为占位符）可能是笔记列表的说明信息 -->
+    <string name="notelist_menu_new">Add note</string> <!-- 笔记列表页的“新增笔记”菜单项 -->
+    <string name="notealert_ok">Got it</string> <!-- 笔记提醒弹窗的确认按钮文本 -->
+    <string name="notealert_enter">Take a look</string> <!-- 笔记提醒弹窗的查看按钮文本 -->
+
+    <!-- 菜单操作相关字符串 -->
+    <string name="menu_create_folder">New Folder</string> <!-- 创建新文件夹菜单 -->
+    <string name="menu_setting">Settings</string> <!-- 打开设置菜单 -->
+    <string name="action_back">Back</string> <!-- 返回按钮文本 -->
+    <string name="action_more">More</string> <!-- 更多操作按钮文本 -->
+
+    <!-- 状态描述 -->
+    <string name="state_enabled">Enabled</string> <!-- 启用状态 -->
+    <string name="state_disabled">Disabled</string> <!-- 禁用状态 -->
+
+    <!-- 删除和选择操作 -->
+    <string name="menu_delete">Delete</string> <!-- 删除菜单 -->
+    <plurals name="menu_select_title"> <!-- 复数字符串资源，根据数量显示不同文本，用于选择标题 -->
+        <item quantity="one">%d selected</item> <!-- 当选择数量为1时 -->
+        <item quantity="other">%d selected</item> <!-- 当选择数量为其他时 -->
     </plurals>
-    <string name="menu_select_none">Nothing selected, the operation is invalid</string>
-    <string name="menu_list_mode">Enter check list</string>
-    <string name="menu_normal_mode">Leave check list</string>
-    <string name="menu_font_small">Small</string>
-    <string name="menu_font_normal">Medium</string>
-    <string name="menu_font_large">Large</string>
-    <string name="menu_font_super">Super</string>
-    <string name="menu_folder_delete">Delete folder</string>
-    <string name="menu_folder_change_name">Change folder name</string>
-    <string name="folder_exist">The folder %1$s exist, please rename</string>
-    <string name="menu_share">Share</string>
-    <string name="share_note_chooser_title">Share note</string>
-    <string name="menu_export_as_txt">Export as TXT</string>
-    <string name="menu_generate_long_image">Save as Image</string>
-    <string name="menu_send_to_desktop">Send to home</string>
-    <string name="menu_alert">Remind me</string>
-    <string name="menu_remove_remind">Delete reminder</string>
-    <string name="info_note_enter_desktop">Note added to home</string>
-    <string name="alert_message_delete_folder">Confirm to delete folder and its notes?</string>
-    <string name="alert_title_delete">Delete selected notes</string>
-    <plurals name="alert_message_delete_notes">
+    <string name="menu_select_none">Nothing selected, the operation is invalid</string> <!-- 未选择任何项时的提示 -->
+    <string name="menu_list_mode">Enter check list</string> <!-- 进入选择（列表）模式 -->
+    <string name="menu_normal_mode">Leave check list</string> <!-- 离开选择（列表）模式 -->
+
+    <!-- 字体大小设置 -->
+    <string name="menu_font_small">Small</string> <!-- 小号字体 -->
+    <string name="menu_font_normal">Medium</string> <!-- 中号字体 -->
+    <string name="menu_font_large">Large</string> <!-- 大号字体 -->
+    <string name="menu_font_super">Super</string> <!-- 超大号字体 -->
+
+    <!-- 文件夹管理 -->
+    <string name="menu_folder_delete">Delete folder</string> <!-- 删除文件夹菜单 -->
+    <string name="menu_folder_change_name">Change folder name</string> <!-- 修改文件夹名称菜单 -->
+    <string name="folder_exist">The folder %1$s exist, please rename</string> <!-- 文件夹已存在时的错误提示，%1$s为占位符，将被文件夹名替换 -->
+
+    <!-- 分享与导出 -->
+    <string name="menu_share">Share</string> <!-- 分享笔记菜单 -->
+    <string name="share_note_chooser_title">Share note</string> <!-- 分享笔记时选择器的标题 -->
+    <string name="menu_export_as_txt">Export as TXT</string> <!-- 导出为TXT文件菜单 -->
+    <string name="menu_generate_long_image">Save as Image</string> <!-- 将笔记保存为长图片菜单 -->
+    <string name="menu_send_to_desktop">Send to home</string> <!-- 发送笔记到桌面菜单 -->
+    <string name="menu_alert">Remind me</string> <!-- 设置笔记提醒菜单 -->
+    <string name="menu_remove_remind">Delete reminder</string> <!-- 删除笔记提醒菜单 -->
+    <string name="info_note_enter_desktop">Note added to home</string> <!-- 笔记成功添加到桌面后的提示信息 -->
+
+    <!-- 删除确认对话框文本 -->
+    <string name="alert_message_delete_folder">Confirm to delete folder and its notes?</string> <!-- 确认删除文件夹及其所有笔记 -->
+    <string name="alert_title_delete">Delete selected notes</string> <!-- 删除笔记对话框标题 -->
+    <plurals name="alert_message_delete_notes"> <!-- 复数字符串，根据删除笔记数量显示不同提示 -->
         <item quantity="one">Confirm to delete the selected %d note?</item>
         <item quantity="other">Confirm to delete the selected %d notes?</item>
     </plurals>
-    <string name="alert_message_delete_note">Confirm to delete this note?</string>
-    <!-- Error information -->
-    <string name="error_sdcard_export">Export failed, please check SD card</string>
-    <string name="error_no_share_app">No app available to share this note</string>
-    <string name="error_long_image_save_failed">Save image failed</string>
-    <string name="error_note_not_exist">The note is not exist</string>
-    <string name="error_note_empty_for_export">Cannot export an empty note</string>
-    <string name="error_note_empty_for_clock">Sorry, can not set clock on empty note</string>
-    <string name="error_note_empty_for_send_to_desktop">Sorry, can not send and empty note to home</string>
-    <string name="success_sdcard_export">Export successful</string>
-    <string name="success_long_image_saved">Image saved to gallery</string>
-    <!-- Preferences -->
-    <string name="preferences_title">Settings</string>
-    <string name="preferences_bg_random_appear_title">New note background color random</string>
-    <string name="preferences_default_color_title">Default new note color</string>
-    <string name="preferences_sort_title">List sorting</string>
-    <string name="preferences_sort_modified_desc">Newest updated first</string>
-    <string name="preferences_sort_modified_asc">Oldest updated first</string>
-    <string name="preferences_sort_title_asc">Title A-Z</string>
-    <string name="preferences_delete_confirmation_title">Confirm before delete</string>
-    <string name="preferences_remember_last_folder_title">Remember last folder</string>
+    <string name="alert_message_delete_note">Confirm to delete this note?</string> <!-- 确认删除单条笔记 -->
+
+    <!-- 错误信息 -->
+    <string name="error_sdcard_export">Export failed, please check SD card</string> <!-- 导出到SD卡失败 -->
+    <string name="error_no_share_app">No app available to share this note</string> <!-- 无可用应用分享笔记 -->
+    <string name="error_long_image_save_failed">Save image failed</string> <!-- 保存图片失败 -->
+    <string name="error_note_not_exist">The note is not exist</string> <!-- 笔记不存在 -->
+    <string name="error_note_empty_for_export">Cannot export an empty note</string> <!-- 不能导出空笔记 -->
+    <string name="error_note_empty_for_clock">Sorry, can not set clock on empty note</string> <!-- 不能为空的笔记设置提醒 -->
+    <string name="error_note_empty_for_send_to_desktop">Sorry, can not send and empty note to home</string> <!-- 不能发送空笔记到桌面 -->
+    <string name="success_sdcard_export">Export successful</string> <!-- 导出成功 -->
+    <string name="success_long_image_saved">Image saved to gallery</string> <!-- 图片成功保存到相册 -->
+
+    <!-- 设置 (Preferences) 相关 -->
+    <string name="preferences_title">Settings</string> <!-- 设置界面标题 -->
+    <string name="preferences_bg_random_appear_title">New note background color random</string> <!-- 新笔记背景颜色随机设置项 -->
+    <string name="preferences_default_color_title">Default new note color</string> <!-- 新笔记默认颜色设置项 -->
+    <string name="preferences_sort_title">List sorting</string> <!-- 列表排序设置项 -->
+    <string name="preferences_sort_modified_desc">Newest updated first</string> <!-- 按更新时间降序（最新在前） -->
+    <string name="preferences_sort_modified_asc">Oldest updated first</string> <!-- 按更新时间升序（最旧在前） -->
+    <string name="preferences_sort_title_asc">Title A-Z</string> <!-- 按标题字母升序排序 -->
+    <string name="preferences_delete_confirmation_title">Confirm before delete</string> <!-- 删除前确认设置项 -->
+    <string name="preferences_remember_last_folder_title">Remember last folder</string> <!-- 记住上次打开的文件夹设置项 -->
+
+    <!-- 颜色选项 -->
     <string name="color_yellow">Yellow</string>
     <string name="color_blue">Blue</string>
     <string name="color_white">White</string>
     <string name="color_green">Green</string>
     <string name="color_red">Red</string>
-    <string name="call_record_folder_name">Call notes</string>
-    <string name="hint_foler_name">Input name</string>
 
-    <string name="search_hint">Search notes</string>
-    <string name="note_editor_placeholder">Write something…</string>
-    <string name="checklist_placeholder">One item per line…</string>
-    <string name="footer_items_empty">Nothing here yet</string>
-    <string name="footer_call_notes_empty">No call notes yet</string>
-    <plurals name="footer_items_count">
+    <!-- 特殊文件夹名称 -->
+    <string name="call_record_folder_name">Call notes</string> <!-- “通话笔记”文件夹的默认名称 -->
+    <string name="hint_foler_name">Input name</string> <!-- 输入文件夹名称的提示文本 -->
+
+    <!-- 搜索和编辑界面占位符 -->
+    <string name="search_hint">Search notes</string> <!-- 搜索框提示文本 -->
+    <string name="note_editor_placeholder">Write something…</string> <!-- 笔记编辑器占位文本 -->
+    <string name="checklist_placeholder">One item per line…</string> <!-- 清单（待办事项）编辑器占位文本 -->
+
+    <!-- 列表底部提示信息 -->
+    <string name="footer_items_empty">Nothing here yet</string> <!-- 当列表为空时显示 -->
+    <string name="footer_call_notes_empty">No call notes yet</string> <!-- 当通话笔记列表为空时显示 -->
+    <plurals name="footer_items_count"> <!-- 复数字符串，显示列表项数量 -->
         <item quantity="one">%1$d item here</item>
         <item quantity="other">%1$d items here</item>
     </plurals>
-    <plurals name="footer_call_notes_count">
+    <plurals name="footer_call_notes_count"> <!-- 复数字符串，显示通话笔记数量 -->
         <item quantity="one">%1$d call note</item>
         <item quantity="other">%1$d call notes</item>
     </plurals>
-    <string name="footer_hint_add_note">Tap the bottom button to add a note</string>
-    <string name="footer_hint_search">Use search above to find notes faster</string>
+    <string name="footer_hint_add_note">Tap the bottom button to add a note</string> <!-- 提示用户点击底部按钮添加笔记 -->
+    <string name="footer_hint_search">Use search above to find notes faster</string> <!-- 提示用户使用上方搜索框更快查找笔记 -->
+
 </resources>
