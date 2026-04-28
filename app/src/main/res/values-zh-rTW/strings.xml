@@ -1,103 +1,132 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 
-<!-- Copyright (c) 2010-2011, The MiCode Open Source Community (www.micode.net)
-
-     Licensed under the Apache License, Version 2.0 (the "License");
-     you may not use this file except in compliance with the License.
-     You may obtain a copy of the License at
-
-          http://www.apache.org/licenses/LICENSE-2.0
-
-     Unless required by applicable law or agreed to in writing, software
-     distributed under the License is distributed on an "AS IS" BASIS,
-     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     See the License for the specific language governing permissions and
-     limitations under the License.
+<!-- 
+    版权声明：The MiCode Open Source Community (www.micode.net)
+    许可协议：Apache License, Version 2.0
+    语言版本：繁体中文（台湾/香港用词习惯）
 -->
 
 <resources xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="app_name">便簽</string>
-    <string name="app_widget2x2">便簽2x2</string>
-    <string name="app_widget4x4">便簽4x4</string>
-    <string name="widget_havenot_content">沒有關聯內容，點擊新建便簽。</string>
-    <string name="notelist_string_info">…</string>
-    <string name="notelist_menu_new">新建便簽</string>
-    <string name="notealert_ok">知道了</string>
-    <string name="notealert_enter">查看</string>
-    <!-- note list string -->
-    <string name="menu_create_folder">新建文件夾</string>
-    <string name="menu_setting">設置</string>
-    <string name="action_back">返回</string>
-    <string name="action_more">更多</string>
-    <string name="state_enabled">已開啟</string>
-    <string name="state_disabled">已關閉</string>
-    <string name="menu_delete">刪除</string>
+    
+    <!-- ==================== 应用基础信息（繁体） ==================== -->
+    <string name="app_name">便簽</string>                           <!-- 应用名称（繁体显示） -->
+    <string name="app_widget2x2">便簽2x2</string>                  <!-- 2x2尺寸桌面小部件名称 -->
+    <string name="app_widget4x4">便簽4x4</string>                  <!-- 4x4尺寸桌面小部件名称 -->
+    <string name="widget_havenot_content">沒有關聯內容，點擊新建便簽。</string>  <!-- 桌面小部件无数据时提示 -->
+    
+    <!-- ==================== 通用界面文本（繁体） ==================== -->
+    <string name="notelist_string_info">…</string>                 <!-- 列表中的省略号占位符 -->
+    <string name="notelist_menu_new">新建便簽</string>             <!-- 列表菜单中的新建按钮 -->
+    <string name="notealert_ok">知道了</string>                    <!-- 提醒弹窗的确认按钮 -->
+    <string name="notealert_enter">查看</string>                   <!-- 提醒弹窗的查看按钮 -->
+    
+    <!-- ==================== 笔记列表操作菜单（繁体） ==================== -->
+    <string name="menu_create_folder">新建文件夾</string>          <!-- 创建新文件夹菜单 -->
+    <string name="menu_setting">設置</string>                      <!-- 应用设置入口 -->
+    <string name="action_back">返回</string>                       <!-- 返回上一级操作 -->
+    <string name="action_more">更多</string>                       <!-- 展开更多操作选项 -->
+    <string name="state_enabled">已開啟</string>                   <!-- 表示某项功能已启用 -->
+    <string name="state_disabled">已關閉</string>                  <!-- 表示某项功能已关闭 -->
+    <string name="menu_delete">刪除</string>                       <!-- 删除操作菜单项 -->
+    
+    <!-- 复数形式：显示被选中的项目数量 -->
     <plurals name="menu_select_title">
-        <item quantity="other">選中了 %d 項</item>
+        <item quantity="other">選中了 %d 項</item>                <!-- 示例：選中了 5 項 -->
     </plurals>
-    <string name="menu_select_none">沒有選中項，操作無效</string>
-    <string name="menu_list_mode">進入清單模式</string>
-    <string name="menu_normal_mode">退出清單模式</string>
-    <string name="menu_font_small">小</string>
-    <string name="menu_font_normal">正常</string>
-    <string name="menu_font_large">大</string>
-    <string name="menu_font_super">超大</string>
-    <string name="menu_folder_delete">刪除文件夾</string>
-    <string name="menu_folder_change_name">修改文件夾名稱</string>
-    <string name="folder_exist">文件夾 %1$s 已存在，請重新命名</string>
-    <string name="menu_share">分享</string>
-    <string name="share_note_chooser_title">分享便簽</string>
-    <string name="menu_export_as_txt">導出為 TXT</string>
-    <string name="menu_generate_long_image">保存為圖片</string>
-    <string name="menu_send_to_desktop">發送到桌面</string>
-    <string name="menu_alert">提醒我</string>
-    <string name="menu_remove_remind">刪除提醒</string>
-    <string name="info_note_enter_desktop">已添加到桌面</string>
-    <string name="alert_title_delete">刪除</string>
+    
+    <string name="menu_select_none">沒有選中項，操作無效</string>  <!-- 未选中任何项目时提示 -->
+    <string name="menu_list_mode">進入清單模式</string>           <!-- 进入多选清单模式 -->
+    <string name="menu_normal_mode">退出清單模式</string>         <!-- 退出多选清单模式 -->
+    
+    <!-- ==================== 字体大小设置（四个等级） ==================== -->
+    <string name="menu_font_small">小</string>                     <!-- 小号字体 -->
+    <string name="menu_font_normal">正常</string>                  <!-- 标准字体大小 -->
+    <string name="menu_font_large">大</string>                     <!-- 大号字体 -->
+    <string name="menu_font_super">超大</string>                   <!-- 超大号字体 -->
+    
+    <!-- ==================== 文件夹管理（繁体用词） ==================== -->
+    <string name="menu_folder_delete">刪除文件夾</string>          <!-- 删除文件夹操作 -->
+    <string name="menu_folder_change_name">修改文件夾名稱</string> <!-- 重命名文件夹 -->
+    <string name="folder_exist">文件夾 %1$s 已存在，請重新命名</string>  <!-- 文件夹名称重复错误 -->
+    
+    <!-- ==================== 便签分享与导出（繁体） ==================== -->
+    <string name="menu_share">分享</string>                        <!-- 分享便签内容 -->
+    <string name="share_note_chooser_title">分享便簽</string>      <!-- 分享方式选择器标题 -->
+    <string name="menu_export_as_txt">導出為 TXT</string>          <!-- 导出为文本文件 -->
+    <string name="menu_generate_long_image">保存為圖片</string>    <!-- 生成长截图功能 -->
+    <string name="menu_send_to_desktop">發送到桌面</string>        <!-- 创建桌面快捷方式 -->
+    
+    <!-- ==================== 提醒功能 ==================== -->
+    <string name="menu_alert">提醒我</string>                      <!-- 设置提醒菜单 -->
+    <string name="menu_remove_remind">刪除提醒</string>            <!-- 移除已有提醒 -->
+    <string name="info_note_enter_desktop">已添加到桌面</string>   <!-- 桌面快捷方式创建成功提示 -->
+    
+    <!-- ==================== 删除确认对话框（繁体） ==================== -->
+    <string name="alert_title_delete">刪除</string>                <!-- 删除确认对话框标题 -->
+    
+    <!-- 复数形式：多条便签删除确认 -->
     <plurals name="alert_message_delete_notes">
         <item quantity="other">确认要刪除所選的 %d 條便籤嗎?</item>
     </plurals>
-    <string name="alert_message_delete_note">确认要删除該條便籤嗎?</string>
-    <string name="alert_message_delete_folder">確認刪除檔夾及所包含的便簽嗎？</string>
-    <string name="error_sdcard_export">導出TXT時發生錯誤，請檢查SD卡</string>
-    <string name="error_no_share_app">沒有可用於分享便簽的應用</string>
-    <string name="error_long_image_save_failed">保存圖片失敗</string>
-    <string name="error_note_not_exist">要查看的便籤不存在</string>
-    <string name="error_note_empty_for_export">空白便簽無法導出</string>
-    <string name="error_note_empty_for_clock">不能爲空便籤設置鬧鐘提醒</string>
-    <string name="error_note_empty_for_send_to_desktop">不能將空便籤發送到桌面</string>
-    <string name="success_sdcard_export">導出成功</string>
-    <string name="success_long_image_saved">已保存到相冊</string>
-    <!-- Preferences -->
-    <string name="preferences_title">設置</string>
-    <string name="preferences_bg_random_appear_title">新建便籤背景顏色隨機</string>
-    <string name="preferences_default_color_title">默認新建便籤顏色</string>
-    <string name="preferences_sort_title">列表排序</string>
-    <string name="preferences_sort_modified_desc">最近修改優先</string>
-    <string name="preferences_sort_modified_asc">最早修改優先</string>
-    <string name="preferences_sort_title_asc">按標題排序</string>
-    <string name="preferences_delete_confirmation_title">刪除前確認</string>
-    <string name="preferences_remember_last_folder_title">記住上次打開的文件夾</string>
-    <string name="color_yellow">黃色</string>
-    <string name="color_blue">藍色</string>
-    <string name="color_white">白色</string>
-    <string name="color_green">綠色</string>
-    <string name="color_red">紅色</string>
-    <string name="call_record_folder_name">通話便籤</string>
-    <string name="hint_foler_name">請輸入名稱</string>
-
-    <string name="search_hint">搜索便籤</string>
-    <string name="note_editor_placeholder">寫點什麼…</string>
-    <string name="checklist_placeholder">每行一項…</string>
-    <string name="footer_items_empty">這裡還沒有內容</string>
-    <string name="footer_call_notes_empty">還沒有通話便籤</string>
+    
+    <string name="alert_message_delete_note">确认要删除該條便籤嗎?</string>  <!-- 单条便签删除确认 -->
+    <string name="alert_message_delete_folder">確認刪除檔夾及所包含的便簽嗎？</string>  <!-- 删除文件夹及其全部内容 -->
+    
+    <!-- ==================== 错误提示（操作失败场景） ==================== -->
+    <string name="error_sdcard_export">導出TXT時發生錯誤，請檢查SD卡</string>      <!-- 导出失败：存储卡问题 -->
+    <string name="error_no_share_app">沒有可用於分享便簽的應用</string>            <!-- 分享失败：无可用的应用 -->
+    <string name="error_long_image_save_failed">保存圖片失敗</string>             <!-- 图片保存失败 -->
+    <string name="error_note_not_exist">要查看的便籤不存在</string>               <!-- 访问不存在的便签 -->
+    <string name="error_note_empty_for_export">空白便簽無法導出</string>          <!-- 尝试导出空便签 -->
+    <string name="error_note_empty_for_clock">不能爲空便籤設置鬧鐘提醒</string>    <!-- 为空便签设置提醒 -->
+    <string name="error_note_empty_for_send_to_desktop">不能將空便籤發送到桌面</string>  <!-- 空便签无法添加快捷方式 -->
+    
+    <!-- ==================== 成功提示 ==================== -->
+    <string name="success_sdcard_export">導出成功</string>         <!-- TXT导出成功 -->
+    <string name="success_long_image_saved">已保存到相冊</string>  <!-- 长图保存成功（保存至相册） -->
+    
+    <!-- ==================== 应用设置（Preferences） ==================== -->
+    <string name="preferences_title">設置</string>                                 <!-- 设置界面标题 -->
+    <string name="preferences_bg_random_appear_title">新建便籤背景顏色隨機</string>  <!-- 随机背景色开关 -->
+    <string name="preferences_default_color_title">默認新建便籤顏色</string>        <!-- 默认背景色选择 -->
+    <string name="preferences_sort_title">列表排序</string>                        <!-- 排序方式设置 -->
+    <string name="preferences_sort_modified_desc">最近修改優先</string>            <!-- 按修改时间降序 -->
+    <string name="preferences_sort_modified_asc">最早修改優先</string>             <!-- 按修改时间升序 -->
+    <string name="preferences_sort_title_asc">按標題排序</string>                  <!-- 按标题字母顺序排序 -->
+    <string name="preferences_delete_confirmation_title">刪除前確認</string>       <!-- 删除确认开关 -->
+    <string name="preferences_remember_last_folder_title">記住上次打開的文件夾</string>  <!-- 记住上次浏览位置 -->
+    
+    <!-- ==================== 颜色选项（繁体） ==================== -->
+    <string name="color_yellow">黃色</string>                     <!-- 黄色便签背景 -->
+    <string name="color_blue">藍色</string>                       <!-- 蓝色便签背景 -->
+    <string name="color_white">白色</string>                      <!-- 白色便签背景 -->
+    <string name="color_green">綠色</string>                      <!-- 绿色便签背景 -->
+    <string name="color_red">紅色</string>                        <!-- 红色便签背景 -->
+    
+    <!-- ==================== 特殊功能与提示 ==================== -->
+    <string name="call_record_folder_name">通話便籤</string>       <!-- 通话记录自动创建的文件夹名称 -->
+    <string name="hint_foler_name">請輸入名稱</string>            <!-- 文件夹命名输入框提示 -->
+    <string name="search_hint">搜索便籤</string>                  <!-- 搜索框占位文本 -->
+    <string name="note_editor_placeholder">寫點什麼…</string>     <!-- 普通编辑模式占位符 -->
+    <string name="checklist_placeholder">每行一項…</string>       <!-- 待办清单模式占位符 -->
+    
+    <!-- ==================== 列表底部状态提示（繁体） ==================== -->
+    <string name="footer_items_empty">這裡還沒有內容</string>                     <!-- 普通便签列表为空 -->
+    <string name="footer_call_notes_empty">還沒有通話便籤</string>               <!-- 通话便签列表为空 -->
+    
+    <!-- 复数形式：统计便签内容总数 -->
     <plurals name="footer_items_count">
-        <item quantity="other">共 %1$d 項內容</item>
+        <item quantity="other">共 %1$d 項內容</item>             <!-- 示例：共 12 項內容 -->
     </plurals>
+    
+    <!-- 复数形式：统计通话便签数量 -->
     <plurals name="footer_call_notes_count">
-        <item quantity="other">共 %1$d 條通話便籤</item>
+        <item quantity="other">共 %1$d 條通話便籤</item>         <!-- 示例：共 3 條通話便籤 -->
     </plurals>
-    <string name="footer_hint_add_note">輕觸底部按鈕即可新建便簽</string>
-    <string name="footer_hint_search">使用上方搜尋可更快找到內容</string>
+    
+    <!-- ==================== 新用户引导（繁体） ==================== -->
+    <string name="footer_hint_add_note">輕觸底部按鈕即可新建便簽</string>  <!-- 新建便签操作引导 -->
+    <string name="footer_hint_search">使用上方搜尋可更快找到內容</string>  <!-- 搜索功能使用引导 -->
+    
 </resources>
