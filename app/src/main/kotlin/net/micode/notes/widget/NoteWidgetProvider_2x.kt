@@ -18,9 +18,33 @@ package net.micode.notes.widget
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 
-// 2x尺寸的笔记小部件提供者（接收器）
-// 继承自 GlanceAppWidgetReceiver，用于接收系统小部件相关事件并绑定对应的 GlanceAppWidget
-class NoteWidgetProvider_2x : () {
-    // 重写 glanceAppWidget 属性，指定该小部件实际使用的 GlanceAppWidget 实现为 NoteWidget2x
+/**
+ * 2x2 尺寸笔记小部件的广播接收器
+ *
+ * 该类作为系统应用小部件框架与 [NoteWidget2x] 之间的桥梁。
+ * 继承自 [GlanceAppWidgetReceiver]，负责处理小部件的生命周期事件，
+ * 包括小部件的创建、更新、删除等系统回调。
+ *
+ * 使用 Glance 框架的优势：
+ * - 基于 Compose UI 声明式编程
+ * - 自动处理小部件的状态更新
+ * - 简化异步数据加载逻辑
+ *
+ * @see NoteWidget2x 实际提供 2x2 尺寸小部件的 UI 和逻辑实现
+ * @see GlanceAppWidgetReceiver Glance 框架的基础接收器类
+ */
+class NoteWidgetProvider_2x : () {  // TODO: 应继承 GlanceAppWidgetReceiver()
+    /**
+     * 绑定到当前接收器的 GlanceAppWidget 实例
+     *
+     * 该属性决定了小部件的具体外观和行为。[NoteWidget2x] 作为单例对象，
+     * 定义了 2x2 尺寸小部件的：
+     * - 布局规格（最大行数：6 行，顶部内边距：20dp）
+     * - 背景资源映射规则
+     * - 数据加载和绑定逻辑
+     *
+     * 重写此属性是 [GlanceAppWidgetReceiver] 的核心要求，
+     * Glance 框架会根据此实例自动完成小部件的渲染和更新。
+     */
     override val glanceAppWidget: GlanceAppWidget = NoteWidget2x
 }
