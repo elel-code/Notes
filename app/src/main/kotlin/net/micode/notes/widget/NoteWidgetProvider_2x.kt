@@ -18,6 +18,9 @@ package net.micode.notes.widget
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 
-class NoteWidgetProvider_2x : GlanceAppWidgetReceiver() {
+// 2x尺寸的笔记小部件提供者（接收器）
+// 继承自 GlanceAppWidgetReceiver，用于接收系统小部件相关事件并绑定对应的 GlanceAppWidget
+class NoteWidgetProvider_2x : () {
+    // 重写 glanceAppWidget 属性，指定该小部件实际使用的 GlanceAppWidget 实现为 NoteWidget2x
     override val glanceAppWidget: GlanceAppWidget = NoteWidget2x
 }
