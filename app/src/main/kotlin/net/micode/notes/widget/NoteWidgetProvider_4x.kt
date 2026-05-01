@@ -18,6 +18,20 @@ package net.micode.notes.widget
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 
+/**
+ * 4x4 尺寸笔记小部件的提供者类
+ *
+ * 继承自 [GlanceAppWidgetReceiver]，用于接收系统小部件生命周期事件（如添加、更新、删除等）。
+ * 通过重写 [glanceAppWidget] 属性，将小部件与具体的 [GlanceAppWidget] 实现 [NoteWidget4x] 绑定。
+ *
+ * 注：该类需要在 AndroidManifest.xml 中注册为 receiver，并配置对应的 meta-data 和 intent-filter，
+ * 以便系统能够识别并管理该小部件。
+ */
 class NoteWidgetProvider_4x : GlanceAppWidgetReceiver() {
+    /**
+     * 绑定到该 Receiver 的 [GlanceAppWidget] 实例
+     *
+     * [NoteWidget4x] 负责定义 4x4 尺寸小部件的 UI 布局、状态管理和数据更新逻辑。
+     */
     override val glanceAppWidget: GlanceAppWidget = NoteWidget4x
 }
